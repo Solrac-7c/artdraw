@@ -1,0 +1,9 @@
+services:
+
+  php:
+    build: .
+    container_name: artdraw
+    ports:
+      - "8080:80"
+    volumes:
+      - ./www:/var/www/html
