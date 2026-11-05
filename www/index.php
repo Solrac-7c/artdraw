@@ -2,32 +2,76 @@
 
 require_once("includes/auth.php");
 
-echo "<h1>ArtDraw - Teste de conexão</h1>";
-
-echo "<p>Conexão com o banco realizada com sucesso!</p>";
-
-echo "<hr>";
-
 $usuario = usuarioAtual();
 
-if ($usuario) {
+?>
 
-    echo "<h3>Usuário autenticado</h3>";
+<!DOCTYPE html>
+<html lang="pt-br">
 
-    echo "Nome: " . htmlspecialchars($usuario["nome"]) . "<br>";
+<head>
 
-    echo "Apelido: " . htmlspecialchars($usuario["apelido"]) . "<br>";
+    <meta charset="UTF-8">
 
-    echo "E-mail: " . htmlspecialchars($usuario["email"]) . "<br>";
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    echo "Perfil: " . htmlspecialchars($usuario["tipo_usuario"]) . "<br>";
+    <title>ArtDraw</title>
 
-    echo "Status: " . htmlspecialchars($usuario["status"]) . "<br>";
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
-} else {
+</head>
 
-    echo "<h3>Visitante</h3>";
+<body class="bg-light">
 
-    echo "<p>Nenhum usuário autenticado.</p>";
+<div class="container py-5">
 
-}
+    <h1>ArtDraw</h1>
+
+    <?php if ($usuario) { ?>
+
+        <h3>
+            Bem-vindo, <?= htmlspecialchars($usuario["apelido"]) ?>!
+        </h3>
+
+        <p>
+            Você está conectado como:
+
+            <strong>
+                <?= htmlspecialchars($usuario["tipo_usuario"]) ?>
+            </strong>
+        </p>
+
+        <a href="logout.php" class="btn btn-danger">
+            Sair
+        </a>
+
+    <?php } else { ?>
+
+        <p>
+            Bem-vindo à comunidade ArtDraw.
+        </p>
+
+        <a href="login/index.php" class="btn btn-primary">
+            Entrar
+        </a>
+
+        <a href="cadastro/index.php" class="btn btn-outline-primary">
+            Criar conta
+        </a>
+
+    <?php } ?>
+
+    <hr>
+
+    <p>
+        Página inicial provisória. Em breve, aqui estará nosso
+        ambiente de descoberta de conteúdos.
+    </p>
+
+</div>
+
+</body>
+</html>

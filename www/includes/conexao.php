@@ -15,11 +15,12 @@ try {
 
 } catch (mysqli_sql_exception $e) {
 
-    error_log("Erro de conexão com MySQL: " . $e->getMessage());
+    error_log("Erro de conexão: " . $e->getMessage());
 
-    http_response_code(500);
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
 
-    die("Não foi possível conectar ao banco de dados.");
+    exit("Não foi possível conectar ao banco de dados.");
 
 }
-?>

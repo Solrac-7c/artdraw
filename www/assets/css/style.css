@@ -1,0 +1,32 @@
+/* Modal de apresentação dos perfis */
+
+#perfilInfoModal .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+#perfilInfoModal .modal-header {
+    background-color: #f5f1e8;
+    border-bottom: none;
+    padding: 1.25rem 1.5rem;
+}
+
+#perfilInfoModal .modal-title {
+    font-weight: 700;
+    color: #34383d;
+}
+
+#perfilInfoModal .modal-body {
+    padding: 1.5rem;
+}
+
+#perfilInfoModal .modal-footer {
+    border-top: none;
+    padding: 1rem 1.5rem;
+}
+
+#perfilInfoModal .list-group-item {
+    background: transparent;
+    color: #34383d;
+}
