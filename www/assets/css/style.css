@@ -1,4 +1,721 @@
-/* Modal de apresentação dos perfis */
+
+/* =========================================================
+   1. IDENTIDADE VISUAL E VARIÁVEIS
+   ========================================================= */
+
+:root {
+    /* Paleta principal */
+    --ad-paper: #F5F1E8;
+    --ad-graphite: #34383D;
+    --ad-terracotta: #D98778;
+    --ad-aqua: #83AAA0;
+    --ad-soft-green: var(--ad-aqua);
+    --ad-graphite-hover: #292D31;
+
+    /* Cores auxiliares */
+    --ad-white: #FFFFFF;
+    --ad-text: #45494E;
+    --ad-text-muted: #777D82;
+    --ad-border: #E7E2D9;
+    --ad-background-soft: #EEEAE1;
+
+    /* Estados */
+    --ad-success: #628E78;
+    --ad-danger: #B85E5E;
+
+    /* Tipografia */
+    --ad-font-main: "DM Sans", sans-serif;
+    --ad-font-brand: "Caveat", cursive;
+
+    /* Bordas e sombras */
+    --ad-radius-sm: 8px;
+    --ad-radius-md: 14px;
+    --ad-radius-lg: 20px;
+
+    --ad-shadow-soft:
+        0 4px 16px rgba(52, 56, 61, 0.06);
+
+    --ad-shadow-card:
+        0 5px 20px rgba(52, 56, 61, 0.08);
+
+    /* Largura padrão do conteúdo */
+    --ad-container-width: 1380px;
+}
+
+
+/* =========================================================
+   2. CONFIGURAÇÕES GERAIS
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    background-color: var(--ad-paper);
+    color: var(--ad-graphite);
+
+    font-family: var(--ad-font-main);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+img {
+    max-width: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:hover {
+    color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+    background-color: var(--ad-soft-green);
+    color: var(--ad-graphite);
+}
+
+
+/* =========================================================
+   3. ESTRUTURA GERAL DAS PÁGINAS
+   ========================================================= */
+
+.ad-main {
+    min-height: calc(100vh - 170px);
+    padding: 32px 0 56px;
+}
+
+.ad-container {
+    width: min(
+        calc(100% - 40px),
+        var(--ad-container-width)
+    );
+
+    margin-inline: auto;
+}
+
+.ad-page {
+    width: 100%;
+}
+
+.ad-page-header {
+    margin-bottom: 28px;
+}
+
+.ad-page-title {
+    margin: 0;
+    color: var(--ad-graphite);
+
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.ad-page-description {
+    margin-top: 8px;
+    color: var(--ad-text-muted);
+    font-size: 0.95rem;
+}
+
+.ad-section {
+    margin-bottom: 40px;
+}
+
+.ad-section-title {
+    margin-bottom: 18px;
+
+    color: var(--ad-graphite);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   4. CABEÇALHO E MARCA
+   ========================================================= */
+
+.ad-header {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+
+    width: 100%;
+
+    background-color: var(--ad-white);
+    border-bottom: 1px solid var(--ad-border);
+}
+
+.ad-navbar {
+    min-height: 76px;
+}
+
+.ad-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+
+    color: var(--ad-graphite);
+
+    font-family: var(--ad-font-brand);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.ad-brand:hover {
+    color: var(--ad-graphite);
+}
+
+.ad-brand-dot {
+    color: var(--ad-terracotta);
+}
+
+.ad-nav-link {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 9px 14px;
+    border-radius: var(--ad-radius-sm);
+
+    color: var(--ad-text);
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.ad-nav-link:hover,
+.ad-nav-link.active {
+    background-color: var(--ad-paper);
+    color: var(--ad-graphite);
+}
+
+.ad-header-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: var(--ad-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+
+
+/* =========================================================
+   5. BOTÕES
+   ========================================================= */
+
+/* Botão principal do Bootstrap */
+
+.btn-primary {
+    --bs-btn-color: #FFFFFF;
+    --bs-btn-bg: var(--ad-graphite);
+    --bs-btn-border-color: var(--ad-graphite);
+
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: var(--ad-graphite-hover);
+    --bs-btn-hover-border-color: var(--ad-graphite-hover);
+
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: var(--ad-graphite-hover);
+    --bs-btn-active-border-color: var(--ad-graphite-hover);
+
+    --bs-btn-focus-shadow-rgb: 131, 170, 160;
+}
+
+/* Botão secundário: fundo claro e contorno grafite */
+
+.btn-outline-primary {
+    --bs-btn-color: var(--ad-graphite);
+    --bs-btn-border-color: var(--ad-graphite);
+
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: var(--ad-graphite);
+    --bs-btn-hover-border-color: var(--ad-graphite);
+
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: var(--ad-graphite-hover);
+    --bs-btn-active-border-color: var(--ad-graphite-hover);
+}
+
+/* Configuração geral */
+
+.btn {
+    border-radius: var(--ad-radius-sm);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+/* Botões próprios do ArtDraw */
+
+.ad-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 42px;
+    padding: 10px 18px;
+
+    border: 1px solid transparent;
+    border-radius: var(--ad-radius-sm);
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Ação principal */
+
+.ad-btn-primary {
+    background-color: var(--ad-graphite);
+    border-color: var(--ad-graphite);
+    color: #FFFFFF;
+}
+
+.ad-btn-primary:hover {
+    background-color: var(--ad-graphite-hover);
+    border-color: var(--ad-graphite-hover);
+    color: #FFFFFF;
+}
+
+/* Ação secundária */
+
+.ad-btn-secondary {
+    background-color: var(--ad-white);
+    border-color: var(--ad-graphite);
+    color: var(--ad-graphite);
+}
+
+.ad-btn-secondary:hover {
+    background-color: var(--ad-paper);
+    color: var(--ad-graphite);
+}
+
+/* Ação destrutiva */
+
+.ad-btn-danger {
+    background-color: #F8E8E5;
+    color: var(--ad-danger);
+}
+
+.ad-btn-danger:hover {
+    background-color: #F1D7D2;
+    color: var(--ad-danger);
+}
+
+
+
+/* =========================================================
+   6. CARTÕES E PUBLICAÇÕES
+   ========================================================= */
+
+.ad-card {
+    overflow: hidden;
+
+    background-color: var(--ad-white);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius-md);
+
+    box-shadow: var(--ad-shadow-soft);
+}
+
+.ad-card-body {
+    padding: 18px;
+}
+
+.ad-card-title {
+    margin: 0 0 8px;
+
+    color: var(--ad-graphite);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.ad-card-description {
+    margin: 0;
+
+    color: var(--ad-text-muted);
+    font-size: 0.9rem;
+}
+
+.ad-card-image {
+    display: block;
+    width: 100%;
+
+    object-fit: cover;
+    background-color: var(--ad-background-soft);
+}
+
+.ad-card-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    color: var(--ad-text-muted);
+    font-size: 0.8rem;
+}
+
+
+/* =========================================================
+   7. IDENTIFICAÇÃO DOS CONTEÚDOS
+   ========================================================= */
+
+.ad-badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 10px;
+    border-radius: 30px;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.ad-badge-aula {
+    background-color: #F8E5E1;
+    color: #985E53;
+}
+
+.ad-badge-dica {
+    background-color: #E4EFEB;
+    color: #527C70;
+}
+
+.ad-badge-trabalho {
+    background-color: var(--ad-background-soft);
+    color: var(--ad-graphite);
+}
+
+.ad-badge-nivel {
+    background-color: var(--ad-background-soft);
+    color: var(--ad-text);
+}
+
+
+/* =========================================================
+   8. GRADE DE CONTEÚDOS — ESTILO PINTEREST
+   ========================================================= */
+
+/*
+   O CSS Columns permite que os cartões tenham
+   alturas diferentes, criando o efeito de mosaico.
+*/
+
+.ad-feed-grid {
+    columns: 4 230px;
+    column-gap: 18px;
+}
+
+.ad-feed-item {
+    display: inline-block;
+    width: 100%;
+
+    margin-bottom: 18px;
+
+    break-inside: avoid;
+    vertical-align: top;
+}
+
+.ad-content-card {
+    overflow: hidden;
+
+    background-color: var(--ad-white);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius-md);
+
+    box-shadow: var(--ad-shadow-soft);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.ad-content-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--ad-shadow-card);
+}
+
+.ad-content-card-image {
+    display: block;
+    width: 100%;
+    height: auto;
+
+    object-fit: cover;
+}
+
+.ad-content-card-body {
+    padding: 14px;
+}
+
+
+/* =========================================================
+   9. PERFIL DE USUÁRIO
+   ========================================================= */
+
+.ad-profile {
+    width: 100%;
+}
+
+.ad-profile-cover {
+    width: 100%;
+    min-height: 150px;
+
+    background-color: var(--ad-soft-green);
+    border-radius: var(--ad-radius-lg);
+}
+
+.ad-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+
+    margin-top: -35px;
+    padding: 0 24px 24px;
+}
+
+.ad-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    width: 104px;
+    height: 104px;
+
+    overflow: hidden;
+
+    background-color: var(--ad-background-soft);
+    border: 5px solid var(--ad-white);
+    border-radius: 50%;
+
+    color: var(--ad-graphite);
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.ad-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ad-profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ad-profile-name {
+    margin: 0;
+
+    color: var(--ad-graphite);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.ad-profile-username {
+    color: var(--ad-text-muted);
+    font-size: 0.9rem;
+}
+
+.ad-profile-bio {
+    margin-top: 10px;
+    color: var(--ad-text);
+}
+
+.ad-profile-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+
+    margin-top: 16px;
+}
+
+.ad-profile-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ad-profile-stat strong {
+    color: var(--ad-graphite);
+    font-size: 1rem;
+}
+
+.ad-profile-stat span {
+    color: var(--ad-text-muted);
+    font-size: 0.8rem;
+}
+
+
+/* =========================================================
+   10. VISUALIZAÇÃO INDIVIDUAL DE CONTEÚDO
+   ========================================================= */
+
+.ad-content-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 28px;
+
+    align-items: start;
+}
+
+.ad-content-main,
+.ad-content-sidebar {
+    min-width: 0;
+}
+
+.ad-content-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    min-height: 260px;
+
+    background-color: var(--ad-background-soft);
+    border-radius: var(--ad-radius-lg);
+}
+
+.ad-content-media img,
+.ad-content-media iframe,
+.ad-content-media video {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+}
+
+.ad-content-text {
+    color: var(--ad-text);
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   11. FORMULÁRIOS
+   ========================================================= */
+
+.form-control,
+.form-select {
+    min-height: 44px;
+
+    border-color: var(--ad-border);
+    border-radius: var(--ad-radius-sm);
+
+    color: var(--ad-graphite);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ad-aqua);
+
+    box-shadow:
+        0 0 0 0.2rem rgba(131, 170, 160, 0.20);
+}
+
+.form-label {
+    color: var(--ad-graphite);
+    font-weight: 600;
+}
+
+.form-text {
+    color: var(--ad-text-muted);
+}
+
+
+/* =========================================================
+   12. ESTADOS VAZIOS
+   ========================================================= */
+
+.ad-empty-state {
+    padding: 48px 24px;
+
+    background-color: var(--ad-white);
+    border: 1px dashed var(--ad-border);
+    border-radius: var(--ad-radius-md);
+
+    text-align: center;
+}
+
+.ad-empty-state h3 {
+    margin-bottom: 8px;
+
+    color: var(--ad-graphite);
+    font-size: 1.1rem;
+}
+
+.ad-empty-state p {
+    margin-bottom: 0;
+    color: var(--ad-text-muted);
+}
+
+
+/* =========================================================
+   13. RODAPÉ
+   ========================================================= */
+
+.ad-footer {
+    padding: 28px 0;
+
+    background-color: var(--ad-white);
+    border-top: 1px solid var(--ad-border);
+}
+
+.ad-footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.ad-footer-text {
+    margin: 0;
+    color: var(--ad-text-muted);
+    font-size: 0.85rem;
+}
+
+.ad-footer-brand {
+    color: var(--ad-graphite);
+    font-family: var(--ad-font-brand);
+    font-size: 1.7rem;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   14. MODAL DE APRESENTAÇÃO DOS PERFIS
+   Mantido da versão anterior do projeto.
+   ========================================================= */
 
 #perfilInfoModal .modal-content {
     border: none;
@@ -7,14 +724,14 @@
 }
 
 #perfilInfoModal .modal-header {
-    background-color: #f5f1e8;
+    background-color: var(--ad-paper);
     border-bottom: none;
     padding: 1.25rem 1.5rem;
 }
 
 #perfilInfoModal .modal-title {
     font-weight: 700;
-    color: #34383d;
+    color: var(--ad-graphite);
 }
 
 #perfilInfoModal .modal-body {
@@ -28,5 +745,114 @@
 
 #perfilInfoModal .list-group-item {
     background: transparent;
-    color: #34383d;
+    color: var(--ad-graphite);
+}
+
+
+/* =========================================================
+   15. RESPONSIVIDADE
+   ========================================================= */
+
+/* Tablets e telas menores */
+
+@media (max-width: 992px) {
+
+    .ad-feed-grid {
+        columns: 3 210px;
+    }
+
+    .ad-content-layout {
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 20px;
+    }
+
+    .ad-profile-header {
+        gap: 16px;
+    }
+
+}
+
+
+/* Celulares */
+
+@media (max-width: 768px) {
+
+    .ad-main {
+        padding-top: 24px;
+    }
+
+    .ad-container {
+        width: min(calc(100% - 28px), var(--ad-container-width));
+    }
+
+    .ad-feed-grid {
+        columns: 2 160px;
+        column-gap: 12px;
+    }
+
+    .ad-feed-item {
+        margin-bottom: 12px;
+    }
+
+    .ad-content-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ad-profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+
+        margin-top: -42px;
+        padding-inline: 16px;
+    }
+
+    .ad-avatar {
+        width: 88px;
+        height: 88px;
+    }
+
+    .ad-profile-name {
+        font-size: 1.3rem;
+    }
+
+    .ad-footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}
+
+
+/* Celulares estreitos */
+
+@media (max-width: 420px) {
+
+    .ad-feed-grid {
+        columns: 2 135px;
+        column-gap: 10px;
+    }
+
+    .ad-card-body {
+        padding: 12px;
+    }
+
+    .ad-profile-stats {
+        gap: 16px;
+    }
+
+}
+
+
+/* Respeita usuários que preferem menos animações */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+
 }
