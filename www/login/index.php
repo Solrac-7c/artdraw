@@ -114,7 +114,7 @@ $erro = $_GET["erro"] ?? "";
 
                         <div class="text-end mb-3">
 
-                            <a href="/recuperacao/index.php">
+                            <a href="/recuperacao/index.php" class="text-decoration-underline">
                                 Esqueci minha senha
                             </a>
 
@@ -137,7 +137,7 @@ $erro = $_GET["erro"] ?? "";
                             Ainda não possui uma conta?
                         </p>
 
-                        <a href="/cadastro/index.php">
+                        <a href="/cadastro/index.php" class="text-decoration-underline">
                             Cadastre-se gratuitamente
                         </a>
 

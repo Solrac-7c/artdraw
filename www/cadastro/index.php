@@ -232,7 +232,7 @@ $erro = $_GET["erro"] ?? "";
                             Já possui uma conta?
                         </p>
 
-                        <a href="/login/index.php">
+                        <a href="/login/index.php" class="text-decoration-underline">
                             Fazer login
                         </a>
 

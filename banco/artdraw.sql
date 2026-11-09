@@ -8,15 +8,6 @@
 -- 3. Faca backup antes de qualquer substituicao do banco atual.
 -- 4. A conta admin sera criada separadamente, por procedimento privado.
 -- 5. Cadastro publico deve aceitar somente os perfis aluno e professor.
---
--- REGRAS APROVADAS:
--- - Conta excluida e desativada logicamente (status='excluido').
--- - Publicacoes do usuario excluido permanecem no banco e mantem autoria.
--- - Professor bloqueado nao tem suas publicacoes exibidas aos usuarios.
--- - Categorias e niveis utilizados nao podem ser apagados fisicamente;
---   devem ser desativados (ativo=0).
--- - Uma publicacao possui no maximo uma midia principal:
---   imagem armazenada no servidor OU URL do YouTube.
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS sistema_artdraw

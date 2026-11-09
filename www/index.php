@@ -1,77 +1,162 @@
 <?php
 
-require_once("includes/auth.php");
+/*
+|--------------------------------------------------------------------------
+| AUTENTICAÇÃO
+|--------------------------------------------------------------------------
+*/
+
+require_once __DIR__ . "/includes/auth.php";
 
 $usuario = usuarioAtual();
 
+
+/*
+|--------------------------------------------------------------------------
+| CONFIGURAÇÕES DA PÁGINA
+|--------------------------------------------------------------------------
+*/
+
+$tituloPagina = "Explorar";
+
+$descricaoPagina =
+    "Aprenda, compartilhe e desenvolva suas habilidades em desenho.";
+
+$paginaAtual = "inicio";
+
+
+/*
+|--------------------------------------------------------------------------
+| CABEÇALHO
+|--------------------------------------------------------------------------
+*/
+
+require_once __DIR__ . "/includes/header.php";
+
 ?>
 
-<!DOCTYPE html>
-<html lang="pt-br">
 
-<head>
+<!-- CONTEÚDO DA PÁGINA INICIAL -->
 
-    <meta charset="UTF-8">
+<div class="ad-home">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>ArtDraw</title>
+    <!-- APRESENTAÇÃO PRINCIPAL -->
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <section class="ad-home-hero">
 
-</head>
+        <span class="ad-home-kicker">
 
-<body class="bg-light">
+            COMUNIDADE ARTDRAW
 
-<div class="container py-5">
+        </span>
 
-    <h1>ArtDraw</h1>
 
-    <?php if ($usuario) { ?>
+        <h1>
 
-        <h3>
-            Bem-vindo, <?= htmlspecialchars($usuario["apelido"]) ?>!
-        </h3>
+            Inspire-se. Aprenda. Desenhe.
+
+        </h1>
+
 
         <p>
-            Você está conectado como:
 
-            <strong>
-                <?= htmlspecialchars($usuario["tipo_usuario"]) ?>
-            </strong>
+            Descubra novas técnicas, encontre referências e desenvolva
+            suas habilidades com conteúdos de desenho organizados
+            em um só lugar.
+
         </p>
 
-        <a href="logout.php" class="btn btn-danger">
-            Sair
-        </a>
 
-    <?php } else { ?>
+        <?php if ($usuario) { ?>
 
-        <p>
-            Bem-vindo à comunidade ArtDraw.
-        </p>
+            <div class="ad-home-welcome">
 
-        <a href="login/index.php" class="btn btn-primary">
-            Entrar
-        </a>
+                Olá,
 
-        <a href="cadastro/index.php" class="btn btn-outline-primary">
-            Criar conta
-        </a>
+                <strong>
+                    <?= htmlspecialchars(
+                        $usuario["apelido"] ?? "artista",
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>!
+                </strong>
 
-    <?php } ?>
+                Explore novas ideias e acompanhe a comunidade.
 
-    <hr>
+            </div>
 
-    <p>
-        Página inicial provisória. Em breve, aqui estará nosso
-        ambiente de descoberta de conteúdos.
-    </p>
+        <?php } ?>
+
+
+    </section>
+
+
+    <!-- ÁREA PRINCIPAL DE EXPLORAÇÃO -->
+
+    <section class="ad-home-feed">
+
+
+        <div class="ad-home-feed-heading">
+
+            <h2>
+
+                Explore conteúdos
+
+            </h2>
+
+            <p>
+
+                Aulas, dicas e trabalhos para inspirar sua evolução.
+
+            </p>
+
+        </div>
+
+
+        <!-- ESTADO TEMPORÁRIO ATÉ A IMPLEMENTAÇÃO DO FEED -->
+
+        <div class="ad-home-empty">
+
+            <span class="ad-home-empty-label">
+
+                EM PREPARAÇÃO
+
+            </span>
+
+
+            <h3>
+
+                Seu espaço de descobertas está sendo preparado.
+
+            </h3>
+
+
+            <p>
+
+                Em breve, você poderá explorar publicações da comunidade,
+                descobrir novas técnicas e encontrar referências
+                adequadas ao seu nível de conhecimento.
+
+            </p>
+
+        </div>
+
+
+    </section>
+
 
 </div>
 
-</body>
-</html>
+
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| RODAPÉ
+|--------------------------------------------------------------------------
+*/
+
+require_once __DIR__ . "/includes/footer.php";
+
+?>
