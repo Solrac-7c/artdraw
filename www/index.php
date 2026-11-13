@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| AUTENTICAÇÃO
+| 1. AUTENTICAÇÃO
 |--------------------------------------------------------------------------
 */
 
@@ -13,7 +13,7 @@ $usuario = usuarioAtual();
 
 /*
 |--------------------------------------------------------------------------
-| CONFIGURAÇÕES DA PÁGINA
+| 2. CONFIGURAÇÕES DA PÁGINA
 |--------------------------------------------------------------------------
 */
 
@@ -27,7 +27,100 @@ $paginaAtual = "inicio";
 
 /*
 |--------------------------------------------------------------------------
-| CABEÇALHO
+| 3. CONSULTA DOS CONTEÚDOS
+|--------------------------------------------------------------------------
+*/
+
+// Consulta a conexão criada pelo arquivo conexao.php.
+
+global $conn;
+
+
+// Seleciona somente as informações necessárias para os cartões.
+
+$sql = "
+    SELECT
+
+        c.id,
+        c.titulo,
+        c.descricao,
+        c.tipo_conteudo,
+        c.tipo_midia,
+        c.midia_url,
+        c.data_publicacao,
+
+        u.id AS autor_id,
+        u.apelido AS autor_apelido,
+
+        cat.nome AS categoria_nome,
+
+        n.nome AS nivel_nome
+
+    FROM conteudos c
+
+    INNER JOIN usuarios u
+        ON c.autor_id = u.id
+
+    INNER JOIN categorias cat
+        ON c.categoria_id = cat.id
+
+    INNER JOIN niveis n
+        ON c.nivel_id = n.id
+
+    WHERE u.status <> 'bloqueado'
+";
+
+
+// Visitantes podem visualizar somente conteúdos iniciantes.
+
+if (!$usuario) {
+
+    $sql .= " AND n.nome = ?";
+
+}
+
+
+// Exibe os mais recentes primeiro.
+
+$sql .= "
+    ORDER BY c.data_publicacao DESC, c.id DESC
+    LIMIT 24
+";
+
+
+// Prepara a consulta.
+
+$stmt = $conn->prepare($sql);
+
+
+// Se for visitante, informa o nível permitido.
+
+if (!$usuario) {
+
+    $nivelPermitido = "Iniciante";
+
+    $stmt->bind_param("s", $nivelPermitido);
+
+}
+
+
+// Executa a consulta.
+
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+$conteudos = $resultado->fetch_all(MYSQLI_ASSOC);
+
+
+// Libera os recursos da consulta.
+
+$stmt->close();
+
+
+/*
+|--------------------------------------------------------------------------
+| 4. CABEÇALHO
 |--------------------------------------------------------------------------
 */
 
@@ -36,111 +129,142 @@ require_once __DIR__ . "/includes/header.php";
 ?>
 
 
-<!-- CONTEÚDO DA PÁGINA INICIAL -->
+<!-- =====================================================
+     PÁGINA INICIAL
+     ===================================================== -->
 
 <div class="ad-home">
 
 
-    <!-- APRESENTAÇÃO PRINCIPAL -->
-
-    <section class="ad-home-hero">
-
-        <span class="ad-home-kicker">
-
-            COMUNIDADE ARTDRAW
-
-        </span>
+    <?php if (!$usuario) { ?>
 
 
-        <h1>
+        <!-- APRESENTAÇÃO EXIBIDA SOMENTE PARA VISITANTES -->
 
-            Inspire-se. Aprenda. Desenhe.
+        <section class="ad-home-hero">
 
-        </h1>
+            <h1>
 
+                Inspire-se. Aprenda. Desenhe.
 
-        <p>
-
-            Descubra novas técnicas, encontre referências e desenvolva
-            suas habilidades com conteúdos de desenho organizados
-            em um só lugar.
-
-        </p>
+            </h1>
 
 
-        <?php if ($usuario) { ?>
+            <p>
 
-            <div class="ad-home-welcome">
+                Descubra novas técnicas, encontre referências e desenvolva
+                suas habilidades com conteúdos de desenho organizados
+                em um só lugar.
 
-                Olá,
+            </p>
 
-                <strong>
-                    <?= htmlspecialchars(
-                        $usuario["apelido"] ?? "artista",
-                        ENT_QUOTES,
-                        "UTF-8"
-                    ) ?>!
-                </strong>
 
-                Explore novas ideias e acompanhe a comunidade.
+            <div class="d-flex flex-wrap gap-2 mt-4">
+
+                <a
+                    href="/cadastro/index.php"
+                    class="ad-btn ad-btn-primary"
+                >
+
+                    Criar minha conta
+
+                </a>
+
+
+                <a
+                    href="/login/index.php"
+                    class="ad-btn ad-btn-secondary"
+                >
+
+                    Já tenho uma conta
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+    <?php } ?>
+
+
+    <!-- =================================================
+         FEED DE PUBLICAÇÕES
+         ================================================= -->
+
+    <section class="ad-home-feed">
+
+
+        <?php if (!$usuario) { ?>
+
+            <div class="ad-home-feed-heading">
+
+                <h2>
+
+                    Explore conteúdos
+
+                </h2>
+
+                <p>
+
+                    Conheça aulas, dicas e trabalhos para começar
+                    sua jornada no desenho.
+
+                </p>
 
             </div>
 
         <?php } ?>
 
 
-    </section>
+        <?php if (!empty($conteudos)) { ?>
 
 
-    <!-- ÁREA PRINCIPAL DE EXPLORAÇÃO -->
+            <!-- GRADE DE CARTÕES ESTILO PINTEREST -->
 
-    <section class="ad-home-feed">
-
-
-        <div class="ad-home-feed-heading">
-
-            <h2>
-
-                Explore conteúdos
-
-            </h2>
-
-            <p>
-
-                Aulas, dicas e trabalhos para inspirar sua evolução.
-
-            </p>
-
-        </div>
+            <div class="ad-feed-grid">
 
 
-        <!-- ESTADO TEMPORÁRIO ATÉ A IMPLEMENTAÇÃO DO FEED -->
+                <?php foreach ($conteudos as $conteudo) { ?>
 
-        <div class="ad-home-empty">
+                    <div class="ad-feed-item">
 
-            <span class="ad-home-empty-label">
+                        <?php
+                        require __DIR__ . "/includes/card-conteudo.php";
+                        ?>
 
-                EM PREPARAÇÃO
+                    </div>
 
-            </span>
-
-
-            <h3>
-
-                Seu espaço de descobertas está sendo preparado.
-
-            </h3>
+                <?php } ?>
 
 
-            <p>
+            </div>
 
-                Em breve, você poderá explorar publicações da comunidade,
-                descobrir novas técnicas e encontrar referências
-                adequadas ao seu nível de conhecimento.
 
-            </p>
+        <?php } else { ?>
 
-        </div>
+
+            <!-- MENSAGEM QUANDO NÃO EXISTEM PUBLICAÇÕES -->
+
+            <div class="ad-empty-state">
+
+                <h3>
+
+                    Ainda não existem publicações por aqui.
+
+                </h3>
+
+                <p>
+
+                    Em breve, novos conteúdos estarão disponíveis
+                    para você explorar.
+
+                </p>
+
+            </div>
+
+
+        <?php } ?>
 
 
     </section>
@@ -153,7 +277,7 @@ require_once __DIR__ . "/includes/header.php";
 
 /*
 |--------------------------------------------------------------------------
-| RODAPÉ
+| 5. RODAPÉ
 |--------------------------------------------------------------------------
 */
 
