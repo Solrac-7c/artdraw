@@ -10,6 +10,15 @@ require_once __DIR__ . "/includes/auth.php";
 
 $usuario = usuarioAtual();
 
+// Gera um token de segurança para os formulários de interação.
+
+if (empty($_SESSION["csrf_interacao"])) {
+
+    $_SESSION["csrf_interacao"] = bin2hex(random_bytes(32));
+}
+
+$csrfToken = $_SESSION["csrf_interacao"];
+
 
 /*
 |--------------------------------------------------------------------------
@@ -35,10 +44,44 @@ $paginaAtual = "inicio";
 
 global $conn;
 
+// Define os campos que identificam as interações do usuário.
 
-// Seleciona somente as informações necessárias para os cartões.
+if ($usuario) {
+
+    $camposInteracao = "
+
+        EXISTS (
+            SELECT 1
+            FROM curtidas cu
+            WHERE cu.conteudo_id = c.id
+            AND cu.usuario_id = ?
+        ) AS usuario_curtiu,
+
+        EXISTS (
+            SELECT 1
+            FROM salvamentos sa
+            WHERE sa.conteudo_id = c.id
+            AND sa.usuario_id = ?
+        ) AS usuario_salvou
+
+    ";
+
+} else {
+
+    $camposInteracao = "
+
+        0 AS usuario_curtiu,
+        0 AS usuario_salvou
+
+    ";
+
+}
+
+
+// Consulta principal.
 
 $sql = "
+
     SELECT
 
         c.id,
@@ -54,7 +97,19 @@ $sql = "
 
         cat.nome AS categoria_nome,
 
-        n.nome AS nivel_nome
+        n.nome AS nivel_nome,
+
+        (
+            SELECT COUNT(*)
+            FROM curtidas cu
+            WHERE cu.conteudo_id = c.id
+        ) AS total_curtidas,
+
+        (
+            SELECT COUNT(*)
+            FROM salvamentos sa
+            WHERE sa.conteudo_id = c.id
+        ) AS total_salvamentos, $camposInteracao
 
     FROM conteudos c
 
@@ -68,23 +123,23 @@ $sql = "
         ON c.nivel_id = n.id
 
     WHERE u.status <> 'bloqueado'
-";
 
+";
 
 // Visitantes podem visualizar somente conteúdos iniciantes.
 
 if (!$usuario) {
-
     $sql .= " AND n.nome = ?";
-
 }
 
 
-// Exibe os mais recentes primeiro.
+// Ordenação das publicações.
 
 $sql .= "
+
     ORDER BY c.data_publicacao DESC, c.id DESC
     LIMIT 24
+
 ";
 
 
@@ -93,18 +148,31 @@ $sql .= "
 $stmt = $conn->prepare($sql);
 
 
-// Se for visitante, informa o nível permitido.
+// Configura os parâmetros conforme o tipo de usuário.
 
-if (!$usuario) {
+if ($usuario) {
+
+    $idUsuario = (int) $usuario["id"];
+
+    $stmt->bind_param(
+        "ii",
+        $idUsuario,
+        $idUsuario
+    );
+
+} else {
 
     $nivelPermitido = "Iniciante";
 
-    $stmt->bind_param("s", $nivelPermitido);
+    $stmt->bind_param(
+        "s",
+        $nivelPermitido
+    );
 
 }
 
 
-// Executa a consulta.
+// Executa.
 
 $stmt->execute();
 
@@ -112,10 +180,8 @@ $resultado = $stmt->get_result();
 
 $conteudos = $resultado->fetch_all(MYSQLI_ASSOC);
 
-
-// Libera os recursos da consulta.
-
 $stmt->close();
+
 
 
 /*

@@ -2,15 +2,15 @@
 
 require_once __DIR__ . "/youtube.php";
 
+
 /*
 |--------------------------------------------------------------------------
-| PREPARAÇÃO DOS DADOS DO CARTÃO
+| 1. PREPARAÇÃO DOS DADOS
 |--------------------------------------------------------------------------
 */
 
-// Tipos de publicação e suas respectivas classes visuais.
-
 $tiposCartao = [
+
     "aula" => [
         "nome" => "Aula",
         "classe" => "ad-badge-aula"
@@ -25,10 +25,8 @@ $tiposCartao = [
         "nome" => "Trabalho",
         "classe" => "ad-badge-trabalho"
     ]
+
 ];
-
-
-// Identifica o tipo de conteúdo.
 
 $tipoCartao = $tiposCartao[$conteudo["tipo_conteudo"]]
     ?? [
@@ -37,7 +35,11 @@ $tipoCartao = $tiposCartao[$conteudo["tipo_conteudo"]]
     ];
 
 
-// Proteção dos textos antes de exibi-los no HTML.
+/*
+|--------------------------------------------------------------------------
+| 2. TEXTOS
+|--------------------------------------------------------------------------
+*/
 
 $tituloCartao = htmlspecialchars(
     $conteudo["titulo"] ?? "",
@@ -47,12 +49,6 @@ $tituloCartao = htmlspecialchars(
 
 $descricaoCartao = htmlspecialchars(
     $conteudo["descricao"] ?? "",
-    ENT_QUOTES,
-    "UTF-8"
-);
-
-$categoriaCartao = htmlspecialchars(
-    $conteudo["categoria_nome"] ?? "",
     ENT_QUOTES,
     "UTF-8"
 );
@@ -70,7 +66,11 @@ $autorCartao = htmlspecialchars(
 );
 
 
-// Formatação da data.
+/*
+|--------------------------------------------------------------------------
+| 3. DATA
+|--------------------------------------------------------------------------
+*/
 
 $dataCartao = "";
 
@@ -84,7 +84,11 @@ if (!empty($conteudo["data_publicacao"])) {
 }
 
 
-// Identificação da mídia.
+/*
+|--------------------------------------------------------------------------
+| 4. MÍDIA
+|--------------------------------------------------------------------------
+*/
 
 $temImagem = (
     ($conteudo["tipo_midia"] ?? null) === "imagem"
@@ -96,143 +100,318 @@ $temYoutube = (
     && !empty($conteudo["midia_url"])
 );
 
-$youtubeIdCartao = $temYoutube ? artdrawYoutubeVideoId($conteudo["midia_url"]) : null;
+$youtubeIdCartao = $temYoutube
+    ? artdrawYoutubeVideoId($conteudo["midia_url"])
+    : null;
+
+
+/*
+|--------------------------------------------------------------------------
+| 5. INTERAÇÕES
+|--------------------------------------------------------------------------
+*/
+
+$totalCurtidas = (int) ($conteudo["total_curtidas"] ?? 0);
+
+$totalSalvamentos = (int) ($conteudo["total_salvamentos"] ?? 0);
+
+$usuarioCurtiu = !empty($conteudo["usuario_curtiu"]);
+
+$usuarioSalvou = !empty($conteudo["usuario_salvou"]);
+
+$podeInteragir = (
+    isset($usuario["tipo_usuario"]) &&
+    in_array(
+        $usuario["tipo_usuario"],
+        ["aluno", "professor"],
+        true
+    )
+);
 
 ?>
-<a
-    href="/conteudo/index.php?id=<?= (int) $conteudo["id"] ?>"
-    class="ad-content-card-link"
-    aria-label="Abrir publicação: <?= $tituloCartao ?>"
->
+
+
 <article class="ad-content-card">
 
 
-    <!-- MÍDIA PRINCIPAL -->
+    <!-- =================================================
+         ÁREA CLICÁVEL DO CARTÃO
+         ================================================= -->
 
-    <?php if ($temImagem) { ?>
-
-        <img
-            src="<?= htmlspecialchars(
-                $conteudo["midia_url"],
-                ENT_QUOTES,
-                "UTF-8"
-            ) ?>"
-            alt="<?= $tituloCartao ?>"
-            class="ad-content-card-image"
-            loading="lazy"
-        >
+    <a
+        href="/conteudo/index.php?id=<?= (int) $conteudo["id"] ?>"
+        class="ad-content-card-link"
+        aria-label="Abrir publicação: <?= $tituloCartao ?>"
+    >
 
 
-    
-    <?php } elseif ($temYoutube && $youtubeIdCartao !== null) { ?>
+        <!-- MÍDIA -->
 
-        <img
-            src="https://img.youtube.com/vi/<?= $youtubeIdCartao ?>/mqdefault.jpg"
-            alt="Miniatura do vídeo: <?= $tituloCartao ?>"
-            class="ad-content-card-image ad-content-card-youtube-image"
-            loading="lazy"
-        >
-    <?php } elseif ($temYoutube) { ?>
+        <?php if ($temImagem) { ?>
 
-        <div class="ad-content-card-placeholder ad-placeholder-youtube">
+            <img
+                src="<?= htmlspecialchars(
+                    $conteudo["midia_url"],
+                    ENT_QUOTES,
+                    "UTF-8"
+                ) ?>"
+                alt="<?= $tituloCartao ?>"
+                class="ad-content-card-image"
+                loading="lazy"
+            >
 
-            <span class="ad-placeholder-icon">▶</span>
+        <?php } elseif (
+            $temYoutube && $youtubeIdCartao !== null
+        ) { ?>
 
-            <span>Endereço de vídeo inválido</span>
+            <img
+                src="https://img.youtube.com/vi/<?= $youtubeIdCartao ?>/mqdefault.jpg"
+                alt="Miniatura do vídeo: <?= $tituloCartao ?>"
+                class="ad-content-card-image ad-content-card-youtube-image"
+                loading="lazy"
+            >
+
+        <?php } elseif ($temYoutube) { ?>
+
+            <div class="ad-content-card-placeholder ad-placeholder-youtube">
+
+                <span class="ad-placeholder-icon">▶</span>
+
+                <span>Endereço de vídeo inválido</span>
+
+            </div>
+
+        <?php } else { ?>
+
+            <div class="ad-content-card-placeholder">
+
+                <span class="ad-placeholder-icon">✎</span>
+
+                <span>Conteúdo do ArtDraw</span>
+
+            </div>
+
+        <?php } ?>
+
+
+        <!-- INFORMAÇÕES -->
+
+        <div class="ad-content-card-body">
+            <div class="ad-content-card-tags">
+
+                <span class="ad-badge <?= $tipoCartao["classe"] ?>">
+
+                    <?= $tipoCartao["nome"] ?>
+
+                </span>
+
+                <span class="ad-badge ad-badge-nivel">
+
+                    <?= $nivelCartao ?>
+
+                </span>
+
+            </div>
+            <h3 class="ad-content-card-title">
+
+                <?= $tituloCartao ?>
+
+            </h3>
+            <p class="ad-content-card-description">
+
+                <?= $descricaoCartao ?>
+
+            </p>
+            
+            <div class="ad-content-card-footer">
+
+                <span>
+
+                    Por <?= $autorCartao ?>
+
+                </span>
+
+                <?php if ($dataCartao !== "") { ?>
+
+                    <time>
+
+                        <?= $dataCartao ?>
+
+                    </time>
+
+                <?php } ?>
+
+            </div>
+
 
         </div>
 
 
-
-    <?php } else { ?>
-
-        <div class="ad-content-card-placeholder">
-
-            <span class="ad-placeholder-icon">✎</span>
-
-            <span>Conteúdo do ArtDraw</span>
-
-        </div>
-
-    <?php } ?>
+    </a>
 
 
-    <!-- INFORMAÇÕES DA PUBLICAÇÃO -->
+    <!-- =================================================
+         INTERAÇÕES DO CARTÃO
+         ================================================= -->
 
-    <div class="ad-content-card-body">
+    <div class="ad-card-interactions">
 
 
-        <!-- TIPO E NÍVEL -->
+        <?php if ($podeInteragir) { ?>
 
-        <div class="ad-content-card-tags">
 
-            <span class="ad-badge <?= $tipoCartao["classe"] ?>">
+            <!-- BOTÃO CURTIR -->
 
-                <?= $tipoCartao["nome"] ?>
+            <form
+                action="/includes/interacoes.php"
+                method="POST"
+                class="ad-interaction-form"
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars(
+                        $csrfToken,
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="conteudo_id"
+                    value="<?= (int) $conteudo["id"] ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="acao"
+                    value="curtir"
+                >
+
+                <input
+                    type="hidden"
+                    name="retorno"
+                    value="/index.php"
+                >
+
+                <button
+                    type="submit"
+                    class="ad-interaction-button <?= $usuarioCurtiu ? 'is-liked' : '' ?>"
+                    aria-pressed="<?= $usuarioCurtiu ? 'true' : 'false' ?>"
+                >
+
+                    <span aria-hidden="true">
+
+                        <?= $usuarioCurtiu ? "♥" : "♡" ?>
+
+                    </span>
+
+                    <span>
+
+                        <?= $totalCurtidas ?>
+
+                    </span>
+
+                    <span class="ad-interaction-label">
+
+                        <?= $usuarioCurtiu ? "Curtido" : "Curtir" ?>
+
+                    </span>
+
+                </button>
+
+            </form>
+
+
+            <!-- BOTÃO SALVAR -->
+
+            <form
+                action="/includes/interacoes.php"
+                method="POST"
+                class="ad-interaction-form"
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars(
+                        $csrfToken,
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="conteudo_id"
+                    value="<?= (int) $conteudo["id"] ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="acao"
+                    value="salvar"
+                >
+
+                <input
+                    type="hidden"
+                    name="retorno"
+                    value="/index.php"
+                >
+
+                <button
+                    type="submit"
+                    class="ad-interaction-button <?= $usuarioSalvou ? 'is-saved' : '' ?>"
+                    aria-pressed="<?= $usuarioSalvou ? 'true' : 'false' ?>"
+                >
+
+                    <span aria-hidden="true">
+
+                        <?= $usuarioSalvou ? "▰" : "▱" ?>
+
+                    </span>
+
+                    <span>
+
+                        <?= $totalSalvamentos ?>
+
+                    </span>
+
+                    <span class="ad-interaction-label">
+
+                        <?= $usuarioSalvou ? "Salvo" : "Salvar" ?>
+
+                    </span>
+
+                </button>
+
+            </form>
+
+
+        <?php } else { ?>
+
+
+            <!-- VISITANTES VISUALIZAM SOMENTE AS QUANTIDADES -->
+
+            <span class="ad-interaction-counter">
+
+                ♡ <?= $totalCurtidas ?>
 
             </span>
 
-            <span class="ad-badge ad-badge-nivel">
+            <span class="ad-interaction-counter">
 
-                <?= $nivelCartao ?>
-
-            </span>
-
-        </div>
-
-
-        <!-- TÍTULO -->
-
-        <h3 class="ad-content-card-title">
-
-            <?= $tituloCartao ?>
-
-        </h3>
-
-
-        <!-- DESCRIÇÃO -->
-
-        <p class="ad-content-card-description">
-
-            <?= $descricaoCartao ?>
-
-        </p>
-
-
-        <!-- CATEGORIA -->
-
-        <div class="ad-content-card-category">
-
-            <?= $categoriaCartao ?>
-
-        </div>
-
-
-        <!-- AUTOR E DATA -->
-
-        <div class="ad-content-card-footer">
-
-            <span>
-
-                Por <?= $autorCartao ?>
+                ▱ <?= $totalSalvamentos ?>
 
             </span>
 
 
-            <?php if ($dataCartao !== "") { ?>
-
-                <time>
-
-                    <?= $dataCartao ?>
-
-                </time>
-
-            <?php } ?>
-
-        </div>
+        <?php } ?>
 
 
     </div>
 
+
 </article>
-</a>

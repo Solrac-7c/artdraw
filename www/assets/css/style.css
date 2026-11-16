@@ -1505,3 +1505,118 @@ a {
 }
 
 
+/* =========================================================
+   CURTIDAS E SALVAMENTOS NOS CARTÕES
+   ========================================================= */
+
+.ad-card-interactions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+
+    padding: 12px 14px 14px;
+
+    border-top: 1px solid var(--ad-border);
+}
+
+.ad-interaction-form {
+    margin: 0;
+}
+
+.ad-interaction-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    padding: 4px 0;
+
+    border: none;
+    background: transparent;
+
+    color: var(--ad-text-muted);
+    font-family: var(--ad-font-main);
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.ad-interaction-button:hover {
+    color: var(--ad-graphite);
+}
+
+.ad-interaction-button > span:first-child {
+    font-size: 1.12rem;
+}
+
+.ad-interaction-button.is-liked {
+    color: var(--ad-terracotta);
+}
+
+.ad-interaction-button.is-saved {
+    color: var(--ad-soft-green);
+}
+
+.ad-interaction-label {
+    margin-left: 2px;
+}
+
+.ad-interaction-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    color: var(--ad-text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   INTERAÇÕES NA PÁGINA INDIVIDUAL
+   ========================================================= */
+
+.ad-detail-interactions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    margin-top: 18px;
+    padding: 14px 20px;
+
+    background-color: var(--ad-white);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius-md);
+
+    box-shadow: var(--ad-shadow-soft);
+}
+
+.ad-detail-interactions .ad-interaction-form {
+    margin: 0;
+}
+
+.ad-detail-interactions .ad-interaction-button {
+    min-height: 36px;
+}
+
+.ad-detail-interactions .ad-interaction-counter {
+    font-size: 0.9rem;
+}
+
+.ad-detail-interactions .ad-interaction-count {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 576px) {
+
+    .ad-detail-interactions {
+        gap: 18px;
+        padding: 12px 16px;
+    }
+
+}
+
+
+

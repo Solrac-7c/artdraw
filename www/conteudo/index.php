@@ -12,6 +12,28 @@ $usuario = usuarioAtual();
 
 require_once __DIR__ . "/../includes/youtube.php";
 
+// Verifica quem pode realizar interações.
+
+$podeInteragir = (
+    $usuario &&
+    in_array(
+        $usuario["tipo_usuario"],
+        ["aluno", "professor"],
+        true
+    )
+);
+
+
+// Gera o token de segurança dos formulários.
+
+if (empty($_SESSION["csrf_interacao"])) {
+
+    $_SESSION["csrf_interacao"] = bin2hex(random_bytes(32));
+
+}
+
+$csrfToken = $_SESSION["csrf_interacao"];
+
 /*
 |--------------------------------------------------------------------------
 | 2. IDENTIFICAÇÃO DA PUBLICAÇÃO
@@ -40,119 +62,155 @@ if ($conteudoId && $conteudoId > 0) {
     |--------------------------------------------------------------------------
     */
 
-    $sql = "
-        SELECT
+    
+// Define os campos de interação conforme o usuário.
 
-            c.id,
-            c.titulo,
-            c.descricao,
-            c.conteudo,
-            c.tipo_conteudo,
-            c.tipo_midia,
-            c.midia_url,
-            c.data_publicacao,
+if ($usuario) {
 
-            u.id AS autor_id,
-            u.apelido AS autor_apelido,
-            u.foto_perfil AS autor_foto,
-            u.tipo_usuario AS autor_tipo,
+    $camposInteracao = "
 
-            cat.nome AS categoria_nome,
+        (
+            SELECT COUNT(*)
+            FROM curtidas cu
+            WHERE cu.conteudo_id = c.id
+        ) AS total_curtidas,
 
-            n.nome AS nivel_nome
+        (
+            SELECT COUNT(*)
+            FROM salvamentos sa
+            WHERE sa.conteudo_id = c.id
+        ) AS total_salvamentos,
 
-        FROM conteudos c
+        EXISTS (
+            SELECT 1
+            FROM curtidas cu2
+            WHERE cu2.conteudo_id = c.id
+            AND cu2.usuario_id = ?
+        ) AS usuario_curtiu,
 
-        INNER JOIN usuarios u
-            ON c.autor_id = u.id
+        EXISTS (
+            SELECT 1
+            FROM salvamentos sa2
+            WHERE sa2.conteudo_id = c.id
+            AND sa2.usuario_id = ?
+        ) AS usuario_salvou
 
-        INNER JOIN categorias cat
-            ON c.categoria_id = cat.id
-
-        INNER JOIN niveis n
-            ON c.nivel_id = n.id
-
-        WHERE c.id = ?
-
-        AND u.status <> 'bloqueado'
     ";
 
+} else {
 
-    // Visitantes só podem acessar publicações iniciantes.
+    $camposInteracao = "
 
-    if (!$usuario) {
+        (
+            SELECT COUNT(*)
+            FROM curtidas cu
+            WHERE cu.conteudo_id = c.id
+        ) AS total_curtidas,
 
-        $sql .= " AND n.nome = 'Iniciante'";
+        (
+            SELECT COUNT(*)
+            FROM salvamentos sa
+            WHERE sa.conteudo_id = c.id
+        ) AS total_salvamentos,
 
-    }
+        0 AS usuario_curtiu,
+        0 AS usuario_salvou
 
-
-    $stmt = $conn->prepare($sql);
-
-    $stmt->bind_param("i", $conteudoId);
-
-    $stmt->execute();
-
-    $resultado = $stmt->get_result();
-
-    $conteudo = $resultado->fetch_assoc();
-
-    $stmt->close();
-
-    if (
-        $conteudo &&
-        $conteudo["tipo_midia"] === "youtube"
-    ) {
-
-        $youtubeId = artdrawYoutubeVideoId(
-            $conteudo["midia_url"]
-        );
-
-        if ($youtubeId !== null) {
-
-            $youtubeEmbedUrl =
-                "https://www.youtube-nocookie.com/embed/" .
-                $youtubeId;
-
-        }
+    ";
 
 }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 4. LINKS COMPLEMENTARES
-    |--------------------------------------------------------------------------
-    */
 
-    if ($conteudo) {
+// Consulta principal.
 
-        $sqlLinks = "
-            SELECT
-                titulo,
-                url
+$sql = "
 
-            FROM links_complementares
+    SELECT
 
-            WHERE conteudo_id = ?
+        c.id,
+        c.titulo,
+        c.descricao,
+        c.conteudo,
+        c.tipo_conteudo,
+        c.tipo_midia,
+        c.midia_url,
+        c.data_publicacao,
 
-            ORDER BY ordem ASC, id ASC
-        ";
+        u.id AS autor_id,
+        u.apelido AS autor_apelido,
+        u.foto_perfil AS autor_foto,
+        u.tipo_usuario AS autor_tipo,
 
-        $stmtLinks = $conn->prepare($sqlLinks);
+        cat.nome AS categoria_nome,
 
-        $stmtLinks->bind_param("i", $conteudoId);
+        n.nome AS nivel_nome,
 
-        $stmtLinks->execute();
+        $camposInteracao
 
-        $resultadoLinks = $stmtLinks->get_result();
+    FROM conteudos c
 
-        $linksComplementares = $resultadoLinks->fetch_all(
-            MYSQLI_ASSOC
-        );
+    INNER JOIN usuarios u
+        ON c.autor_id = u.id
 
-        $stmtLinks->close();
+    INNER JOIN categorias cat
+        ON c.categoria_id = cat.id
 
-    }
+    INNER JOIN niveis n
+        ON c.nivel_id = n.id
+
+    WHERE c.id = ?
+
+    AND u.status <> 'bloqueado'
+
+";
+
+
+// Visitantes só podem acessar conteúdos iniciantes.
+
+if (!$usuario) {
+
+    $sql .= " AND n.nome = 'Iniciante'";
+
+}
+
+
+// Prepara a consulta.
+
+$stmt = $conn->prepare($sql);
+
+
+// Organiza os parâmetros da consulta.
+
+if ($usuario) {
+
+    $idUsuario = (int) $usuario["id"];
+
+    $stmt->bind_param(
+        "iii",
+        $idUsuario,
+        $idUsuario,
+        $conteudoId
+    );
+
+} else {
+
+    $stmt->bind_param(
+        "i",
+        $conteudoId
+    );
+
+}
+
+
+// Executa.
+
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+$conteudo = $resultado->fetch_assoc();
+
+$stmt->close();
 
 }
 
@@ -180,12 +238,10 @@ if (!$conteudo) {
 */
 
 $tituloPagina = $conteudo
-    ? $conteudo["titulo"]
-    : "Conteúdo indisponível";
+    ? $conteudo["titulo"] : "Conteúdo indisponível";
 
 $descricaoPagina = $conteudo
-    ? $conteudo["descricao"]
-    : "Publicação não encontrada.";
+    ? $conteudo["descricao"] : "Publicação não encontrada.";
 
 $paginaAtual = "conteudo";
 
@@ -443,8 +499,166 @@ require_once __DIR__ . "/../includes/header.php";
 
 
                 <?php } ?>
-            <?php } ?>       
+            <?php } ?>
+            
+            
+<!-- =================================================
+     INTERAÇÕES DA PUBLICAÇÃO
+     ================================================= -->
 
+        <section
+            class="ad-detail-interactions"
+            aria-label="Interações da publicação"
+        >
+
+
+        <?php if ($podeInteragir) { ?>
+        <!-- CURTIDA -->
+
+        <form
+            action="/includes/interacoes.php"
+            method="POST"
+            class="ad-interaction-form"
+        >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="<?= htmlspecialchars(
+                    $csrfToken,
+                    ENT_QUOTES,
+                    "UTF-8"
+                ) ?>"
+            >
+
+            <input
+                type="hidden"
+                name="conteudo_id"
+                value="<?= (int) $conteudo["id"] ?>"
+            >
+
+            <input
+                type="hidden"
+                name="acao"
+                value="curtir"
+            >
+
+            <input
+                type="hidden"
+                name="retorno"
+                value="/conteudo/index.php?id=<?= (int) $conteudo["id"] ?>"
+            >
+
+            <button
+                type="submit"
+                class="ad-interaction-button <?= !empty($conteudo["usuario_curtiu"]) ? 'is-liked' : '' ?>"
+                aria-label="<?= !empty($conteudo["usuario_curtiu"]) ? 'Descurtir' : 'Curtir' ?>"
+                aria-pressed="<?= !empty($conteudo["usuario_curtiu"]) ? 'true' : 'false' ?>"
+            >
+
+                <span aria-hidden="true">
+
+                    <?= !empty($conteudo["usuario_curtiu"]) ? "♥" : "♡" ?>
+
+                </span>
+
+                <span class="ad-interaction-count">
+
+                    <?= (int) $conteudo["total_curtidas"] ?>
+
+                </span>
+
+            </button>
+
+        </form>
+        
+        <!-- SALVAMENTO -->
+
+        <form
+            action="/includes/interacoes.php"
+            method="POST"
+            class="ad-interaction-form"
+        >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="<?= htmlspecialchars(
+                    $csrfToken,
+                    ENT_QUOTES,
+                    "UTF-8"
+                ) ?>"
+            >
+
+            <input
+                type="hidden"
+                name="conteudo_id"
+                value="<?= (int) $conteudo["id"] ?>"
+            >
+
+            <input
+                type="hidden"
+                name="acao"
+                value="salvar"
+            >
+
+            <input
+                type="hidden"
+                name="retorno"
+                value="/conteudo/index.php?id=<?= (int) $conteudo["id"] ?>"
+            >
+
+            <button
+                type="submit"
+                class="ad-interaction-button <?= !empty($conteudo["usuario_salvou"]) ? 'is-saved' : '' ?>"
+                aria-label="<?= !empty($conteudo["usuario_salvou"]) ? 'Remover dos salvos' : 'Salvar conteúdo' ?>"
+                aria-pressed="<?= !empty($conteudo["usuario_salvou"]) ? 'true' : 'false' ?>"
+            >
+
+                <span aria-hidden="true">
+
+                    <?= !empty($conteudo["usuario_salvou"]) ? "▰" : "▱" ?>
+
+                </span>
+
+                <span class="ad-interaction-count">
+
+                    <?= (int) $conteudo["total_salvamentos"] ?>
+
+                </span>
+
+            </button>
+
+        </form>
+
+
+    <?php } else { ?>
+
+
+        <!-- VISITANTES E ADMINISTRADORES -->
+
+        <span class="ad-interaction-counter">
+
+            <span aria-hidden="true">♡</span>
+
+            <?= (int) $conteudo["total_curtidas"] ?>
+
+        </span>
+
+
+        <span class="ad-interaction-counter">
+
+            <span aria-hidden="true">▱</span>
+
+            <?= (int) $conteudo["total_salvamentos"] ?>
+
+        </span>
+
+
+    <?php } ?>
+
+
+</section>
 
                 <!-- TEXTO COMPLETO -->
 
