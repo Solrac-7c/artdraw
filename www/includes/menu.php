@@ -118,11 +118,21 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
 
                             </span>
 
-                            <span class="ad-badge ad-badge-nivel">
+                        <?php if (
+                            !empty($usuario) && in_array(
+                                $usuario["tipo_usuario"] ?? "",
+                                ["aluno", "professor"],
+                                true
+                            )
+                        ): ?>
 
-                                <?= $tipoUsuarioTexto ?>
+                            <a href="/perfil/index.php" class="ad-menu-profile-link">
+                                Meu perfil
+                            </a>
 
-                            </span>
+                        <?php endif; ?>
+
+                    
 
                         </div>
 
