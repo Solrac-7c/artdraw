@@ -1,4 +1,3 @@
-
 <?php
 
 // O menu recebe os dados do usuário definidos pela página
@@ -94,14 +93,7 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
 
                     <li class="nav-item">
 
-                        <a
-                            class="ad-nav-link<?= $classeExplorar ?>"
-                            href="/index.php"
-                        >
-
-                            Explorar
-
-                        </a>
+                        
 
                     </li>
 

@@ -11,7 +11,7 @@ require_once __DIR__ . "/includes/auth.php";
 $usuario = usuarioAtual();
 
 
-// Token de segurança para curtidas e salvamentos.
+// Token de segurança das interações.
 
 if (empty($_SESSION["csrf_interacao"])) {
 
@@ -38,11 +38,11 @@ $paginaAtual = "inicio";
 
 /*
 |--------------------------------------------------------------------------
-| 3. RECEBIMENTO DOS FILTROS
+| 3. RECEBIMENTO DA PESQUISA E CATEGORIA
 |--------------------------------------------------------------------------
 */
 
-// Pesquisa por palavras-chave.
+// Pesquisa.
 
 $busca = $_GET["busca"] ?? "";
 
@@ -51,9 +51,6 @@ if (!is_string($busca)) {
 }
 
 $busca = trim($busca);
-
-
-// Limita o tamanho da pesquisa.
 
 if (function_exists("mb_substr")) {
 
@@ -66,7 +63,7 @@ if (function_exists("mb_substr")) {
 }
 
 
-// Categoria selecionada.
+// Categoria.
 
 $categoriaSelecionada = 0;
 
@@ -81,63 +78,22 @@ if (
     );
 
     if ($valorCategoria !== false && $valorCategoria > 0) {
+
         $categoriaSelecionada = $valorCategoria;
+
     }
-
-}
-
-
-// Nível selecionado.
-
-$nivelSelecionado = 0;
-
-if (
-    isset($_GET["nivel"]) &&
-    is_scalar($_GET["nivel"])
-) {
-
-    $valorNivel = filter_var(
-        $_GET["nivel"],
-        FILTER_VALIDATE_INT
-    );
-
-    if ($valorNivel !== false && $valorNivel > 0) {
-        $nivelSelecionado = $valorNivel;
-    }
-
-}
-
-
-// Tipo de publicação selecionado.
-
-$tipoSelecionado = $_GET["tipo"] ?? "";
-
-$tiposPermitidos = [
-    "aula",
-    "dica",
-    "trabalho"
-];
-
-if (
-    !is_string($tipoSelecionado) ||
-    !in_array($tipoSelecionado, $tiposPermitidos, true)
-) {
-
-    $tipoSelecionado = "";
 
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| 4. CONSULTAR CATEGORIAS E NÍVEIS ATIVOS
+| 4. BUSCAR CATEGORIAS ATIVAS
 |--------------------------------------------------------------------------
 */
 
 global $conn;
 
-
-// Categorias disponíveis.
 
 $resultadoCategorias = $conn->query("
 
@@ -154,24 +110,7 @@ $resultadoCategorias = $conn->query("
 $categorias = $resultadoCategorias->fetch_all(MYSQLI_ASSOC);
 
 
-// Níveis disponíveis.
-
-$resultadoNiveis = $conn->query("
-
-    SELECT id, nome, ordem
-
-    FROM niveis
-
-    WHERE ativo = 1
-
-    ORDER BY ordem ASC
-
-");
-
-$niveis = $resultadoNiveis->fetch_all(MYSQLI_ASSOC);
-
-
-// Verifica se a categoria escolhida está ativa.
+// Verifica se a categoria selecionada realmente está ativa.
 
 $idsCategoriasAtivas = array_map(
     "intval",
@@ -188,40 +127,11 @@ if (
 }
 
 
-// Visitantes não podem escolher níveis superiores.
-
-if (!$usuario) {
-
-    $nivelSelecionado = 0;
-
-} else {
-
-    // Verifica se o nível escolhido está ativo.
-
-    $idsNiveisAtivos = array_map(
-        "intval",
-        array_column($niveis, "id")
-    );
-
-    if (
-        $nivelSelecionado > 0 &&
-        !in_array($nivelSelecionado, $idsNiveisAtivos, true)
-    ) {
-
-        $nivelSelecionado = 0;
-
-    }
-
-}
-
-
 /*
 |--------------------------------------------------------------------------
-| 5. CONSTRUIR A CONSULTA DO FEED
+| 5. PREPARAÇÃO DAS INTERAÇÕES
 |--------------------------------------------------------------------------
 */
-
-// Campos que identificam as interações do usuário.
 
 if ($usuario) {
 
@@ -255,15 +165,22 @@ if ($usuario) {
 }
 
 
-// Parâmetros da consulta preparada.
+/*
+|--------------------------------------------------------------------------
+| 6. CONSTRUIR AS CONDIÇÕES DA CONSULTA
+|--------------------------------------------------------------------------
+*/
+
+$condicoes = [
+    "u.status <> 'bloqueado'"
+];
 
 $parametros = [];
 
 $tiposParametros = "";
 
 
-// Os dois primeiros parâmetros pertencem aos campos
-// de curtida e salvamento do usuário autenticado.
+// Identificação das interações do usuário.
 
 if ($usuario) {
 
@@ -277,16 +194,7 @@ if ($usuario) {
 }
 
 
-// Condições iniciais.
-
-$condicoes = [
-
-    "u.status <> 'bloqueado'"
-
-];
-
-
-// Visitantes veem exclusivamente conteúdos iniciantes.
+// Visitantes visualizam exclusivamente conteúdos iniciantes.
 
 if (!$usuario) {
 
@@ -299,7 +207,7 @@ if (!$usuario) {
 }
 
 
-// Pesquisa por título ou descrição.
+// Pesquisa por título, descrição ou apelido do autor.
 
 if ($busca !== "") {
 
@@ -308,6 +216,7 @@ if ($busca !== "") {
         (
             c.titulo LIKE ?
             OR c.descricao LIKE ?
+            OR u.apelido LIKE ?
         )
 
     ";
@@ -316,8 +225,9 @@ if ($busca !== "") {
 
     $parametros[] = $termoPesquisa;
     $parametros[] = $termoPesquisa;
+    $parametros[] = $termoPesquisa;
 
-    $tiposParametros .= "ss";
+    $tiposParametros .= "sss";
 
 }
 
@@ -335,36 +245,9 @@ if ($categoriaSelecionada > 0) {
 }
 
 
-// Filtro por nível.
-// Aplicado somente para usuários autenticados.
-
-if ($usuario && $nivelSelecionado > 0) {
-
-    $condicoes[] = "c.nivel_id = ?";
-
-    $parametros[] = $nivelSelecionado;
-
-    $tiposParametros .= "i";
-
-}
-
-
-// Filtro por tipo de publicação.
-
-if ($tipoSelecionado !== "") {
-
-    $condicoes[] = "c.tipo_conteudo = ?";
-
-    $parametros[] = $tipoSelecionado;
-
-    $tiposParametros .= "s";
-
-}
-
-
 /*
 |--------------------------------------------------------------------------
-| 6. CONSULTA SQL PRINCIPAL
+| 7. CONSULTA PRINCIPAL DO FEED
 |--------------------------------------------------------------------------
 */
 
@@ -421,12 +304,10 @@ $sql = "
 ";
 
 
-// Prepara a consulta.
-
 $stmt = $conn->prepare($sql);
 
 
-// Vincula os parâmetros dinamicamente.
+// Vinculação dinâmica dos parâmetros.
 
 if (!empty($parametros)) {
 
@@ -437,6 +318,8 @@ if (!empty($parametros)) {
         $referencias[$indice] = &$valor;
 
     }
+
+    unset($valor);
 
     $stmt->bind_param(
         $tiposParametros,
@@ -457,19 +340,9 @@ $conteudos = $resultado->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 
-// Verifica se existem filtros ativos.
-
-$temFiltros = (
-    $busca !== "" ||
-    $categoriaSelecionada > 0 ||
-    $nivelSelecionado > 0 ||
-    $tipoSelecionado !== ""
-);
-
-
 /*
 |--------------------------------------------------------------------------
-| 7. CABEÇALHO
+| 8. CABEÇALHO COMPARTILHADO
 |--------------------------------------------------------------------------
 */
 
@@ -479,116 +352,41 @@ require_once __DIR__ . "/includes/header.php";
 
 
 <!-- =====================================================
-     PÁGINA INICIAL
+     HOME - PESQUISA E FEED
      ===================================================== -->
 
 <div class="ad-home">
 
-
-    <?php if (!$usuario) { ?>
-
-
-        <!-- APRESENTAÇÃO EXIBIDA SOMENTE PARA VISITANTES -->
-
-        <section class="ad-home-hero">
-
-            <h1>
-
-                Inspire-se. Aprenda. Desenhe.
-
-            </h1>
-
-
-            <p>
-
-                Descubra novas técnicas, encontre referências e desenvolva
-                suas habilidades com conteúdos de desenho organizados
-                em um só lugar.
-
-            </p>
-
-
-            <div class="d-flex flex-wrap gap-2 mt-4">
-
-                <a
-                    href="/cadastro/index.php"
-                    class="ad-btn ad-btn-primary"
-                >
-
-                    Criar minha conta
-
-                </a>
-
-
-                <a
-                    href="/login/index.php"
-                    class="ad-btn ad-btn-secondary"
-                >
-
-                    Já tenho uma conta
-
-                </a>
-
-            </div>
-
-        </section>
-
-
-    <?php } ?>
-
-
-    <!-- =================================================
-         FEED DE PUBLICAÇÕES
-         ================================================= -->
-
     <section class="ad-home-feed">
 
 
-        <div class="ad-home-feed-heading">
-
-            <h2>
-
-                Explore conteúdos
-
-            </h2>
-
-            <p>
-
-                Encontre aulas, dicas e trabalhos para inspirar
-                sua evolução no desenho.
-
-            </p>
-
-        </div>
-
-
-        <!-- =================================================
-             PESQUISA E FILTROS
-             ================================================= -->
+        <!-- BARRA DE PESQUISA E CATEGORIAS -->
 
         <form
             action="/index.php"
             method="GET"
-            class="ad-feed-filters"
+            class="ad-feed-toolbar"
+            id="ad-feed-form"
         >
 
 
-            <!-- PESQUISA -->
+            <!-- CAMPO DE PESQUISA -->
 
-            <div class="ad-filter-search">
+            <div class="ad-feed-search">
 
-                <label for="busca-conteudo">
-
+                <label
+                    for="busca-conteudo"
+                    class="visually-hidden"
+                >
                     Pesquisar conteúdos
-
                 </label>
+
 
                 <input
                     type="search"
                     name="busca"
                     id="busca-conteudo"
-                    class="form-control"
-                    placeholder="Digite o título ou uma palavra-chave..."
+                    placeholder="Pesquisar desenhos, técnicas, autores..."
                     value="<?= htmlspecialchars(
                         $busca,
                         ENT_QUOTES,
@@ -596,37 +394,134 @@ require_once __DIR__ . "/includes/header.php";
                     ) ?>"
                 >
 
+
+                <input
+                    type="hidden"
+                    name="categoria"
+                    id="ad-categoria-selecionada"
+                    value="<?= (int) $categoriaSelecionada ?>"
+                >
+
+
+                <!-- BOTÃO DE PESQUISA -->
+
+                <button
+                    type="submit"
+                    class="ad-feed-search-button"
+                    aria-label="Pesquisar"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+
+                        <circle cx="11" cy="11" r="7"/>
+
+                        <path d="m20 20-4-4"/>
+
+                    </svg>
+
+                </button>
+
             </div>
 
 
-            <!-- CATEGORIA -->
+            <!-- FILTRO DE CATEGORIAS -->
 
-            <div class="ad-filter-field">
+            <div class="dropdown ad-category-dropdown">
 
-                <label for="filtro-categoria">
-
-                    Categoria
-
-                </label>
-
-                <select
-                    name="categoria"
-                    id="filtro-categoria"
-                    class="form-select"
+                <button
+                    type="button"
+                    class="ad-category-toggle"
+                    id="ad-category-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
                 >
 
-                    <option value="0">
+
+                    <!-- ÍCONE DE FILTROS -->
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+
+                        <path d="M4 6h16"/>
+
+                        <path d="M4 12h16"/>
+
+                        <path d="M4 18h16"/>
+
+                        <circle cx="8" cy="6" r="2" fill="#F5F1E8"/>
+
+                        <circle cx="15" cy="12" r="2" fill="#F5F1E8"/>
+
+                        <circle cx="10" cy="18" r="2" fill="#F5F1E8"/>
+
+                    </svg>
+
+
+                    <span>Categorias</span>
+
+
+                    <!-- SETA -->
+
+                    <svg
+                        class="ad-category-chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+
+                        <path d="m6 9 6 6 6-6"/>
+
+                    </svg>
+
+
+                </button>
+
+
+                <!-- OPÇÕES DO MENU -->
+
+                <div
+                    class="dropdown-menu dropdown-menu-end ad-category-menu"
+                    aria-labelledby="ad-category-toggle"
+                >
+
+
+                    <button
+                        type="button"
+                        class="dropdown-item <?= $categoriaSelecionada === 0 ? 'selected' : '' ?>"
+                        data-categoria="0"
+                    >
 
                         Todas as categorias
 
-                    </option>
+                    </button>
 
 
                     <?php foreach ($categorias as $categoria) { ?>
 
-                        <option
-                            value="<?= (int) $categoria["id"] ?>"
-                            <?= $categoriaSelecionada == $categoria["id"] ? "selected" : "" ?>
+
+                        <button
+                            type="button"
+                            class="dropdown-item <?= $categoriaSelecionada == $categoria["id"] ? 'selected' : '' ?>"
+                            data-categoria="<?= (int) $categoria["id"] ?>"
                         >
 
                             <?= htmlspecialchars(
@@ -635,164 +530,13 @@ require_once __DIR__ . "/includes/header.php";
                                 "UTF-8"
                             ) ?>
 
-                        </option>
+                        </button>
+
 
                     <?php } ?>
 
 
-                </select>
-
-            </div>
-
-
-            <!-- NÍVEL -->
-
-            <div class="ad-filter-field">
-
-                <label for="filtro-nivel">
-
-                    Nível
-
-                </label>
-
-
-                <?php if ($usuario) { ?>
-
-
-                    <select
-                        name="nivel"
-                        id="filtro-nivel"
-                        class="form-select"
-                    >
-
-                        <option value="0">
-
-                            Todos os níveis
-
-                        </option>
-
-
-                        <?php foreach ($niveis as $nivel) { ?>
-
-                            <option
-                                value="<?= (int) $nivel["id"] ?>"
-                                <?= $nivelSelecionado == $nivel["id"] ? "selected" : "" ?>
-                            >
-
-                                <?= htmlspecialchars(
-                                    $nivel["nome"],
-                                    ENT_QUOTES,
-                                    "UTF-8"
-                                ) ?>
-
-                            </option>
-
-                        <?php } ?>
-
-
-                    </select>
-
-
-                <?php } else { ?>
-
-
-                    <select
-                        id="filtro-nivel"
-                        class="form-select"
-                        disabled
-                    >
-
-                        <option selected>
-
-                            Iniciante
-
-                        </option>
-
-                    </select>
-
-
-                <?php } ?>
-
-
-            </div>
-
-
-            <!-- TIPO DE CONTEÚDO -->
-
-            <div class="ad-filter-field">
-
-                <label for="filtro-tipo">
-
-                    Tipo de conteúdo
-
-                </label>
-
-                <select
-                    name="tipo"
-                    id="filtro-tipo"
-                    class="form-select"
-                >
-
-                    <option value="">
-
-                        Todos os tipos
-
-                    </option>
-
-                    <option
-                        value="aula"
-                        <?= $tipoSelecionado === "aula" ? "selected" : "" ?>
-                    >
-
-                        Aulas
-
-                    </option>
-
-                    <option
-                        value="dica"
-                        <?= $tipoSelecionado === "dica" ? "selected" : "" ?>
-                    >
-
-                        Dicas
-
-                    </option>
-
-                    <option
-                        value="trabalho"
-                        <?= $tipoSelecionado === "trabalho" ? "selected" : "" ?>
-                    >
-
-                        Trabalhos
-
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- BOTÕES -->
-
-            <div class="ad-filter-actions">
-
-                <button
-                    type="submit"
-                    class="ad-btn ad-btn-primary"
-                >
-
-                    Pesquisar e filtrar
-
-                </button>
-
-
-                <a
-                    href="/index.php"
-                    class="ad-btn ad-btn-secondary"
-                >
-
-                    Limpar filtros
-
-                </a>
+                </div>
 
             </div>
 
@@ -801,22 +545,11 @@ require_once __DIR__ . "/includes/header.php";
 
 
         <!-- =================================================
-             RESULTADOS
+             CARTÕES DO FEED
              ================================================= -->
 
         <?php if (!empty($conteudos)) { ?>
 
-
-            <div class="ad-feed-results-info">
-
-                <?= count($conteudos) ?>
-
-                <?= count($conteudos) === 1 ? "publicação encontrada" : "publicações encontradas" ?>
-
-            </div>
-
-
-            <!-- GRADE DE CARTÕES ESTILO PINTEREST -->
 
             <div class="ad-feed-grid">
 
@@ -844,46 +577,22 @@ require_once __DIR__ . "/includes/header.php";
         <?php } else { ?>
 
 
-            <!-- NENHUM RESULTADO -->
+            <!-- ESTADO VAZIO -->
 
             <div class="ad-empty-state">
 
-                <?php if ($temFiltros) { ?>
+                <h3>
 
+                    Nenhum conteúdo encontrado.
 
-                    <h3>
+                </h3>
 
-                        Nenhum conteúdo encontrado.
+                <p>
 
-                    </h3>
+                    Experimente outra palavra-chave ou selecione
+                    uma categoria diferente.
 
-                    <p>
-
-                        Não encontramos publicações com os critérios
-                        selecionados. Experimente alterar sua pesquisa
-                        ou limpar os filtros.
-
-                    </p>
-
-
-                <?php } else { ?>
-
-
-                    <h3>
-
-                        Ainda não existem publicações por aqui.
-
-                    </h3>
-
-                    <p>
-
-                        Em breve, novos conteúdos estarão disponíveis
-                        para você explorar.
-
-                    </p>
-
-
-                <?php } ?>
+                </p>
 
             </div>
 
@@ -891,29 +600,49 @@ require_once __DIR__ . "/includes/header.php";
         <?php } ?>
 
 
-        <?php if (count($conteudos) === 24) { ?>
-
-            <p class="ad-feed-limit-note">
-
-                Exibindo as primeiras 24 publicações.
-                Em breve, teremos carregamento de mais resultados.
-
-            </p>
-
-        <?php } ?>
-
-
     </section>
 
-
 </div>
+
+
+<!-- =====================================================
+     COMPORTAMENTO DO FILTRO DE CATEGORIAS
+     ===================================================== -->
+
+<script>
+
+document.addEventListener("click", function(event) {
+
+    const opcao = event.target.closest("[data-categoria]");
+
+    if (!opcao) {
+        return;
+    }
+
+    const formulario = document.getElementById("ad-feed-form");
+
+    const campoCategoria = document.getElementById(
+        "ad-categoria-selecionada"
+    );
+
+    // Atualiza a categoria escolhida.
+
+    campoCategoria.value = opcao.dataset.categoria;
+
+    // Envia a pesquisa e o filtro juntos.
+
+    formulario.requestSubmit();
+
+});
+
+</script>
 
 
 <?php
 
 /*
 |--------------------------------------------------------------------------
-| 8. RODAPÉ
+| 9. RODAPÉ COMPARTILHADO
 |--------------------------------------------------------------------------
 */
 

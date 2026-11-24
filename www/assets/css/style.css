@@ -1618,85 +1618,6 @@ a {
 
 }
 
-
-/* =========================================================
-   PESQUISA E FILTROS DO FEED
-   ========================================================= */
-
-.ad-feed-filters {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 1fr;
-    gap: 14px;
-    align-items: end;
-
-    margin-bottom: 26px;
-    padding: 20px;
-
-    background-color: var(--ad-white);
-    border: 1px solid var(--ad-border);
-    border-radius: var(--ad-radius-md);
-
-    box-shadow: var(--ad-shadow-soft);
-}
-
-.ad-filter-search,
-.ad-filter-field {
-    min-width: 0;
-}
-
-.ad-filter-search label,
-.ad-filter-field label {
-    display: block;
-    margin-bottom: 7px;
-
-    color: var(--ad-graphite);
-    font-size: 0.82rem;
-    font-weight: 700;
-}
-
-.ad-filter-search input,
-.ad-filter-field select {
-    width: 100%;
-    min-height: 44px;
-
-    background-color: var(--ad-paper);
-    border: 1px solid var(--ad-border);
-    border-radius: var(--ad-radius-sm);
-
-    color: var(--ad-graphite);
-    font-size: 0.88rem;
-}
-
-.ad-filter-search input:focus,
-.ad-filter-field select:focus {
-    border-color: var(--ad-aqua);
-
-    box-shadow:
-        0 0 0 0.2rem rgba(131, 170, 160, 0.20);
-}
-
-.ad-filter-field select:disabled {
-    background-color: var(--ad-background-soft);
-    color: var(--ad-text-muted);
-    opacity: 1;
-}
-
-.ad-filter-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 9px;
-
-    grid-column: 1 / -1;
-    padding-top: 3px;
-}
-
-.ad-filter-actions .ad-btn {
-    min-height: 40px;
-    padding: 8px 15px;
-    font-size: 0.85rem;
-}
-
-
 /* Informação sobre os resultados */
 
 .ad-feed-results-info {
@@ -1715,8 +1636,7 @@ a {
     color: var(--ad-text-muted);
     font-size: 0.82rem;
     text-align: center;
-}
-
+} 
 
 /* Responsividade */
 
@@ -1752,6 +1672,298 @@ a {
 
     .ad-filter-actions .ad-btn {
         width: 100%;
+    }
+
+}
+
+
+/* =========================================================
+   HOME - BARRA DE PESQUISA E CATEGORIAS
+   ========================================================= */
+
+.ad-home {
+    width: min(calc(100% - 40px), 1200px);
+    margin: 0 auto;
+
+    /* Reduz o espaço entre o menu e a pesquisa */
+    padding: 24px 0 60px;
+}
+
+.ad-home-feed {
+    margin: 0;
+}
+
+
+/* BARRA COMPLETA */
+
+.ad-feed-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    width: 100%;
+
+    margin-bottom: 26px;
+    padding: 7px;
+
+    background-color: var(--ad-white);
+    border: 1px solid var(--ad-border);
+    border-radius: 50px;
+
+    box-shadow: var(--ad-shadow-soft);
+}
+
+
+/* CAMPO DE PESQUISA */
+
+.ad-feed-search {
+    display: flex;
+    align-items: center;
+    flex: 1;
+
+    min-width: 0;
+    gap: 10px;
+
+    padding-left: 10px;
+}
+
+.ad-feed-search input {
+    flex: 1;
+    min-width: 0;
+
+    min-height: 44px;
+    padding: 9px 5px;
+
+    border: none !important;
+    outline: none;
+
+    background-color: transparent !important;
+    box-shadow: none !important;
+
+    color: var(--ad-graphite);
+    font-family: var(--ad-font-main);
+    font-size: 0.9rem;
+}
+
+.ad-feed-search input::placeholder {
+    color: var(--ad-text-muted);
+    opacity: 1;
+}
+
+
+/* BOTÃO DA LUPA */
+
+.ad-feed-search-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 50%;
+
+    background-color: transparent;
+    color: var(--ad-graphite);
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.ad-feed-search-button:hover {
+    background-color: var(--ad-paper);
+}
+
+.ad-feed-search-button svg {
+    width: 22px;
+    height: 22px;
+}
+
+
+/* BOTÃO DE CATEGORIAS */
+
+.ad-category-dropdown {
+    flex-shrink: 0;
+
+    border-left: 1px solid var(--ad-border);
+    padding-left: 12px;
+}
+
+.ad-category-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    min-height: 44px;
+    padding: 9px 17px;
+
+    border: none;
+    border-radius: 30px;
+
+    background-color: var(--ad-paper);
+    color: var(--ad-graphite);
+
+    font-family: var(--ad-font-main);
+    font-size: 0.88rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.ad-category-toggle:hover,
+.ad-category-toggle[aria-expanded="true"] {
+    background-color: var(--ad-background-soft);
+}
+
+.ad-category-toggle svg:first-child {
+    width: 20px;
+    height: 20px;
+}
+
+.ad-category-chevron {
+    width: 16px;
+    height: 16px;
+
+    transition: transform 0.2s ease;
+}
+
+.ad-category-toggle[aria-expanded="true"] .ad-category-chevron {
+    transform: rotate(180deg);
+}
+
+
+/* MENU DE CATEGORIAS */
+
+.ad-category-menu {
+    min-width: 245px;
+    max-height: 340px;
+
+    overflow-y: auto;
+
+    margin-top: 10px !important;
+    padding: 7px;
+
+    background-color: var(--ad-white);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius-md);
+
+    box-shadow: var(--ad-shadow-card);
+}
+
+.ad-category-menu .dropdown-item {
+    padding: 10px 12px;
+
+    border-radius: 7px;
+
+    color: var(--ad-graphite);
+    font-size: 0.87rem;
+
+    transition: background-color 0.15s ease;
+}
+
+.ad-category-menu .dropdown-item:hover {
+    background-color: var(--ad-paper);
+    color: var(--ad-graphite);
+}
+
+.ad-category-menu .dropdown-item.selected {
+    background-color: rgba(131, 170, 160, 0.20);
+    color: var(--ad-graphite);
+    font-weight: 700;
+}
+
+
+/* GRADE DO FEED */
+
+.ad-feed-grid {
+    columns: 3 250px;
+    column-gap: 18px;
+}
+
+.ad-feed-item {
+    display: inline-block;
+    width: 100%;
+
+    margin-bottom: 18px;
+
+    break-inside: avoid;
+    vertical-align: top;
+}
+
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 900px) {
+
+    .ad-feed-grid {
+        columns: 2 220px;
+    }
+
+}
+
+@media (max-width: 576px) {
+
+    .ad-home {
+        width: calc(100% - 24px);
+        padding-top: 16px;
+    }
+
+    .ad-feed-toolbar {
+        gap: 5px;
+        padding: 5px;
+
+        margin-bottom: 20px;
+    }
+
+    .ad-feed-search {
+        gap: 3px;
+        padding-left: 5px;
+    }
+
+    .ad-feed-search input {
+        font-size: 0.78rem;
+    }
+
+    .ad-feed-search-button {
+        width: 36px;
+        height: 36px;
+    }
+
+    .ad-category-dropdown {
+        padding-left: 6px;
+    }
+
+    .ad-category-toggle {
+        gap: 6px;
+
+        min-height: 40px;
+        padding: 8px 10px;
+
+        font-size: 0.76rem;
+    }
+
+    .ad-category-toggle svg:first-child {
+        width: 17px;
+        height: 17px;
+    }
+
+    .ad-category-chevron {
+        width: 13px;
+        height: 13px;
+    }
+
+    .ad-feed-grid {
+        columns: 2 145px;
+        column-gap: 10px;
+    }
+
+    .ad-feed-item {
+        margin-bottom: 10px;
     }
 
 }
