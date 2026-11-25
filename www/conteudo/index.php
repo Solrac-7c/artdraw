@@ -212,6 +212,56 @@ $conteudo = $resultado->fetch_assoc();
 
 $stmt->close();
 
+// Prepara o endereço de incorporação do YouTube.
+if (
+    $conteudo &&
+    $conteudo["tipo_midia"] === "youtube" &&
+    !empty($conteudo["midia_url"])
+) {
+
+    $videoId = artdrawYoutubeVideoId(
+        $conteudo["midia_url"]
+    );
+
+    if ($videoId !== null) {
+
+        $youtubeEmbedUrl =
+            "https://www.youtube-nocookie.com/embed/" . $videoId;
+
+    }
+
+}
+
+// Recupera os links complementares da publicação.
+if ($conteudo) {
+
+    $sqlLinks = "
+        SELECT
+            id,
+            titulo,
+            url,
+            ordem
+        FROM links_complementares
+        WHERE conteudo_id = ?
+        ORDER BY ordem ASC, id ASC
+    ";
+
+    $stmtLinks = $conn->prepare($sqlLinks);
+
+    $stmtLinks->bind_param("i", $conteudoId);
+
+    $stmtLinks->execute();
+
+    $resultadoLinks = $stmtLinks->get_result();
+
+    $linksComplementares = $resultadoLinks->fetch_all(
+        MYSQLI_ASSOC
+    );
+
+    $stmtLinks->close();
+
+}
+
 }
 
 

@@ -224,12 +224,19 @@ require_once __DIR__ . "/../includes/header.php";
 
                         <div class="ad-teacher-publication-actions">
 
-                            <a
-                                href="/conteudo/index.php?id=<?= (int) $publicacao["id"] ?>"
-                                class="ad-teacher-view-link"
-                            >
-                                Visualizar
-                            </a>
+                        <a
+                            href="/conteudo/index.php?id=<?= (int) $publicacao["id"] ?>"
+                            class="ad-teacher-view-link"
+                        >
+                            Visualizar
+                        </a>
+
+                        <a
+                            href="/professor/editar-publicacao.php?id=<?= (int) $publicacao["id"] ?>"
+                            class="ad-teacher-view-link"
+                        >
+                            Editar
+                        </a>
 
                         </div>
 
