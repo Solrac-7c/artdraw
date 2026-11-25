@@ -258,4 +258,14 @@ require_once __DIR__ . "/../includes/header.php";
 
 </div>
 
+<!-- Botão flutuante para cadastrar nova aula -->
+<a
+    href="/professor/nova-publicacao.php?tipo=aula"
+    class="ad-teacher-fab"
+    aria-label="Cadastrar nova aula"
+    title="Cadastrar nova aula"
+>
+    <span aria-hidden="true">+</span>
+</a>
+
 <?php require_once __DIR__ . "/../includes/footer.php"; ?>

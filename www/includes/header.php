@@ -89,10 +89,7 @@ $tituloDocumento = $tituloPagina === "ArtDraw"
 
     <!-- CSS principal do ArtDraw -->
 
-    <link
-        rel="stylesheet"
-        href="/assets/css/style.css"
-    >
+    <link rel="stylesheet" href="/assets/css/style.css?v=2">
 
 </head>
 
