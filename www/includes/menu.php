@@ -57,8 +57,7 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
             <a
                 class="ad-brand navbar-brand"
                 href="/index.php"
-                aria-label="ArtDraw - página inicial"
-            >
+                aria-label="ArtDraw - página inicial">
 
                 ArtDraw<span class="ad-brand-dot">.</span>
 
@@ -74,8 +73,7 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
                 data-bs-target="#adMenuNavegacao"
                 aria-controls="adMenuNavegacao"
                 aria-expanded="false"
-                aria-label="Abrir ou fechar o menu"
-            >
+                aria-label="Abrir ou fechar o menu">
 
                 <span class="navbar-toggler-icon"></span>
 
@@ -93,7 +91,7 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
 
                     <li class="nav-item">
 
-                        
+
 
                     </li>
 
@@ -118,29 +116,37 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
 
                             </span>
 
-                        <?php if (
-                            !empty($usuario) && in_array(
-                                $usuario["tipo_usuario"] ?? "",
-                                ["aluno", "professor"],
-                                true
-                            )
-                        ): ?>
+                            <?php if (
+                                !empty($usuario) && in_array(
+                                    $usuario["tipo_usuario"] ?? "",
+                                    ["aluno", "professor"],
+                                    true
+                                )
+                            ): ?>
 
-                            <a href="/perfil/index.php" class="ad-menu-profile-link">
-                                Meu perfil
-                            </a>
+                                <a href="/perfil/index.php" class="ad-menu-profile-link">
+                                    Meu perfil
+                                </a>
 
-                        <?php endif; ?>
+                            <?php endif; ?>
+                            <?php if (($usuarioMenu["tipo_usuario"] ?? "") === "admin"): ?>
 
-                    
+                                <a
+                                    href="/admin/index.php"
+                                    class="ad-menu-profile-link">
+                                    Painel administrativo
+                                </a>
+
+                            <?php endif; ?>
+
+
 
                         </div>
 
 
                         <a
                             href="/logout.php"
-                            class="ad-btn ad-btn-secondary"
-                        >
+                            class="ad-btn ad-btn-secondary">
 
                             Sair
 
@@ -154,8 +160,7 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
 
                         <a
                             href="/login/index.php"
-                            class="ad-nav-link"
-                        >
+                            class="ad-nav-link">
 
                             Entrar
 
@@ -164,8 +169,7 @@ $classeExplorar = $paginaAtual === "inicio" ? " active" : "";
 
                         <a
                             href="/cadastro/index.php"
-                            class="ad-btn ad-btn-primary"
-                        >
+                            class="ad-btn ad-btn-primary">
 
                             Criar conta
 
