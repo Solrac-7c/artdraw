@@ -54,8 +54,8 @@ try {
     $conn->begin_transaction();
     $transacaoIniciada = true;
 
-    // Busca a aula e verifica a autoria.
-    // FOR UPDATE bloqueia a linha durante esta operação.
+    // Busca a publicação e verifica se pertence ao professor.
+    // Agora aceita Aula, Dica ou Trabalho.
     $sql = "
         SELECT
             id,
@@ -64,7 +64,6 @@ try {
         FROM conteudos
         WHERE id = ?
           AND autor_id = ?
-          AND tipo_conteudo = 'aula'
         LIMIT 1
         FOR UPDATE
     ";
@@ -90,7 +89,7 @@ try {
         $transacaoIniciada = false;
 
         http_response_code(404);
-        exit("Aula não encontrada ou indisponível.");
+        exit("Publicação não encontrada ou indisponível.");
     }
 
     // Guarda os dados da mídia antes de excluir o registro.
@@ -102,7 +101,6 @@ try {
         DELETE FROM conteudos
         WHERE id = ?
           AND autor_id = ?
-          AND tipo_conteudo = 'aula'
     ");
 
     $stmt->bind_param(
@@ -124,7 +122,7 @@ try {
     }
 
     // Confirma a exclusão no banco.
-    // Os registros relacionados são removidos pelas FKs CASCADE.
+    // Links, curtidas e salvamentos são removidos pelo ON DELETE CASCADE.
     $conn->commit();
     $transacaoIniciada = false;
 
@@ -137,7 +135,7 @@ try {
 
         $nomeArquivo = basename($midiaUrl);
 
-        // Aceita somente nomes gerados pelo nosso sistema.
+        // Aceita somente nomes gerados pelo sistema.
         $nomeValido = preg_match(
             '/^[a-f0-9]{32}\.(jpg|png|webp)$/i',
             $nomeArquivo
@@ -162,7 +160,7 @@ try {
                 if (!unlink($caminhoArquivo)) {
                     error_log(
                         "Não foi possível remover a imagem da publicação "
-                        . $idPublicacao
+                            . $idPublicacao
                     );
                 }
             }
@@ -171,13 +169,12 @@ try {
 
     // Mensagem de sucesso para o painel.
     $_SESSION["mensagem_professor"] =
-        "A aula foi excluída com sucesso.";
+        "A publicação foi excluída com sucesso.";
 
     $_SESSION["tipo_mensagem_professor"] = "sucesso";
 
     header("Location: /professor/index.php");
     exit;
-
 } catch (Throwable $erro) {
 
     // Reverte a transação se ainda estiver aberta.
@@ -188,18 +185,18 @@ try {
         } catch (Throwable $erroRollback) {
             error_log(
                 "Erro ao reverter exclusão ArtDraw: "
-                . $erroRollback->getMessage()
+                    . $erroRollback->getMessage()
             );
         }
     }
 
     error_log(
-        "Erro ao excluir aula ArtDraw: "
-        . $erro->getMessage()
+        "Erro ao excluir publicação ArtDraw: "
+            . $erro->getMessage()
     );
 
     $_SESSION["mensagem_professor"] =
-        "Não foi possível excluir a aula. Tente novamente.";
+        "Não foi possível excluir a publicação. Tente novamente.";
 
     $_SESSION["tipo_mensagem_professor"] = "erro";
 

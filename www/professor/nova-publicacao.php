@@ -13,8 +13,23 @@ if (($usuario["tipo_usuario"] ?? "") !== "professor") {
 
 $idProfessor = (int) $usuario["id"];
 
-// Nesta primeira versão, o formulário cadastra somente aulas.
-$tipoConteudo = "aula";
+// Tipos de publicação permitidos no ArtDraw.
+$tiposConteudo = [
+    "aula" => "Aula",
+    "dica" => "Dica",
+    "trabalho" => "Trabalho"
+];
+
+// O formulário começa com o tipo recebido pela URL.
+// Quando não houver tipo informado, utiliza Aula.
+$tipoInicial = $_GET["tipo"] ?? "aula";
+
+$tipoConteudo = (
+    is_string($tipoInicial) &&
+    isset($tiposConteudo[$tipoInicial])
+)
+    ? $tipoInicial
+    : "aula";
 
 // Token de proteção CSRF.
 if (empty($_SESSION["csrf_publicacao"])) {
@@ -92,6 +107,22 @@ $erros = [];
 
 // Processamento do formulário.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    // Valida o tipo de publicação recebido.
+    $tipoRecebido = $_POST["tipo_conteudo"] ?? "";
+
+    if (
+       !is_string($tipoRecebido) ||
+       !array_key_exists($tipoRecebido, $tiposConteudo)
+    ) {
+
+       $erros[] = "Selecione um tipo de publicação válido.";
+
+    } else {
+
+       $tipoConteudo = $tipoRecebido;
+
+    }
 
     // Validação CSRF.
     $tokenRecebido = $_POST["csrf_token"] ?? "";
@@ -537,7 +568,7 @@ $quantidadeLinhasLinks = min(
 );
 
 // Configurações da página.
-$tituloPagina = "Nova aula";
+$tituloPagina = "Nova publicação";
 $paginaAtual = "professor";
 
 require_once __DIR__ . "/../includes/header.php";
@@ -556,10 +587,10 @@ require_once __DIR__ . "/../includes/header.php";
             ÁREA DO PROFESSOR
         </span>
 
-        <h1>Cadastrar nova aula</h1>
+        <h1>Criar publicação</h1>
 
         <p>
-            Compartilhe seus conhecimentos com a comunidade ArtDraw.
+            Compartilhe seus conhecimentos e trabalhos com a comunidade ArtDraw.
         </p>
 
     </header>
@@ -600,21 +631,42 @@ require_once __DIR__ . "/../includes/header.php";
                 value="<?= $escapar($csrfToken) ?>"
             >
 
-            <!-- Tipo de publicação -->
+            <div class="ad-publication-field">
 
-            <div class="ad-publication-type">
+    <label for="tipo_conteudo">
+        Tipo de publicação
+    </label>
 
-                <span>Tipo de publicação</span>
+    <select
+        id="tipo_conteudo"
+        name="tipo_conteudo"
+        required
+    >
 
-                <strong>Aula</strong>
+        <?php foreach ($tiposConteudo as $valor => $nome): ?>
 
-            </div>
+            <option
+                value="<?= $escapar($valor) ?>"
+                <?= $tipoConteudo === $valor ? "selected" : "" ?>
+            >
+                <?= $escapar($nome) ?>
+            </option>
+
+        <?php endforeach; ?>
+
+    </select>
+
+    <small>
+        Escolha o formato de conteúdo que deseja compartilhar.
+    </small>
+
+</div>
 
             <!-- Título -->
 
             <div class="ad-publication-field">
 
-                <label for="titulo">Título da aula</label>
+                <label for="titulo">Título da Publicação</label>
 
                 <input
                     type="text"
@@ -713,7 +765,7 @@ require_once __DIR__ . "/../includes/header.php";
 
             <div class="ad-publication-field">
 
-                <label for="conteudo">Conteúdo da aula</label>
+                <label for="conteudo">Conteúdo completo</label>
 
                 <textarea
                     id="conteudo"
@@ -907,7 +959,7 @@ require_once __DIR__ . "/../includes/header.php";
                     type="submit"
                     class="ad-publication-submit"
                 >
-                    Publicar aula
+                    Publicar conteúdo
                 </button>
 
                 <a

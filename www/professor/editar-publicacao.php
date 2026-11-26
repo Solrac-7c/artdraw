@@ -13,6 +13,13 @@ if (($usuario["tipo_usuario"] ?? "") !== "professor") {
 
 $idProfessor = (int) $usuario["id"];
 
+// Tipos de publicação permitidos.
+$tiposConteudo = [
+    "aula" => "Aula",
+    "dica" => "Dica",
+    "trabalho" => "Trabalho"
+];
+
 // Recupera o ID da publicação pela URL.
 $idPublicacao = filter_input(
     INPUT_GET,
@@ -42,7 +49,6 @@ $sqlPublicacao = "
     FROM conteudos
     WHERE id = ?
       AND autor_id = ?
-      AND tipo_conteudo = 'aula'
     LIMIT 1
 ";
 
@@ -59,6 +65,8 @@ if (!$publicacao) {
     http_response_code(404);
     exit("Aula não encontrada ou indisponível.");
 }
+
+$tipoConteudo = $publicacao["tipo_conteudo"];
 
 // Token de proteção CSRF.
 if (empty($_SESSION["csrf_editar_publicacao"])) {
@@ -157,8 +165,8 @@ $tipoMidia = $publicacao["tipo_midia"] ?? "nenhum";
 
 $urlYoutube = (
     $tipoMidia === "youtube"
-        ? $publicacao["midia_url"]
-        : ""
+    ? $publicacao["midia_url"]
+    : ""
 );
 
 $linksTituloFormulario = array_map(
@@ -199,6 +207,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $descricao = $obterTexto($_POST["descricao"] ?? "");
     $textoCompleto = $obterTexto($_POST["conteudo"] ?? "");
 
+    // Recupera e valida o tipo da publicação.
+    $tipoConteudo = $obterTexto($_POST["tipo_conteudo"] ?? "");
+
+    if (!isset($tiposConteudo[$tipoConteudo])) {
+        $erros[] = "Selecione um tipo de publicação válido.";
+    }
+
     $categoriaId = $obterId($_POST["categoria_id"] ?? "");
     $nivelId = $obterId($_POST["nivel_id"] ?? "");
 
@@ -228,7 +243,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($categoriaId <= 0) {
 
         $erros[] = "Selecione uma categoria.";
-
     } else {
 
         $stmt = $conn->prepare("
@@ -262,7 +276,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($nivelId <= 0) {
 
         $erros[] = "Selecione um nível.";
-
     } else {
 
         $stmt = $conn->prepare("
@@ -304,7 +317,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($urlYoutube === "") {
 
             $erros[] = "Informe o endereço do vídeo do YouTube.";
-
         } elseif (
             $contarCaracteres($urlYoutube) > 500 ||
             !artdrawYoutubeVideoId($urlYoutube)
@@ -406,18 +418,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($arquivoImagem["error"] !== UPLOAD_ERR_OK) {
 
                 $erros[] = "O envio da imagem falhou. Confira o tamanho do arquivo e tente novamente.";
-
             } elseif ((int) $arquivoImagem["size"] > 5 * 1024 * 1024) {
 
                 $erros[] = "A imagem deve ter no máximo 5 MB.";
-
             } elseif (
                 empty($arquivoImagem["tmp_name"]) ||
                 !is_uploaded_file($arquivoImagem["tmp_name"])
             ) {
 
                 $erros[] = "O arquivo de imagem enviado é inválido.";
-
             } else {
 
                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -425,7 +434,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($finfo === false) {
 
                     $erros[] = "Não foi possível validar o formato da imagem.";
-
                 } else {
 
                     $mime = finfo_file(
@@ -452,14 +460,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ) {
 
                         $erros[] = "Envie uma imagem válida nos formatos JPG, JFIF, PNG ou WebP.";
-
                     } else {
 
                         $extensaoImagem = $formatosPermitidos[$mime];
                     }
                 }
             }
-
         } elseif (
             $publicacao["tipo_midia"] !== "imagem" ||
             empty($publicacao["midia_url"])
@@ -517,7 +523,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $arquivoSalvo = $caminhoDestino;
 
                     $midiaUrlFinal = "/uploads/conteudos/" . $nomeArquivo;
-
                 } else {
 
                     // Mantém a imagem que já estava cadastrada.
@@ -525,7 +530,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
 
                 $tipoMidiaFinal = "imagem";
-
             } elseif ($tipoMidia === "youtube") {
 
                 $tipoMidiaFinal = "youtube";
@@ -543,22 +547,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     titulo = ?,
                     descricao = ?,
                     conteudo = ?,
+                    tipo_conteudo = ?,
                     tipo_midia = ?,
                     midia_url = ?,
                     categoria_id = ?,
                     nivel_id = ?
                 WHERE id = ?
-                  AND autor_id = ?
-                  AND tipo_conteudo = 'aula'
+                AND autor_id = ?
             ";
 
             $stmt = $conn->prepare($sqlAtualizacao);
 
             $stmt->bind_param(
-                "sssssiiii",
+                "ssssssiiii",
                 $titulo,
                 $descricao,
                 $textoCompleto,
+                $tipoConteudo,
                 $tipoMidiaFinal,
                 $midiaUrlFinal,
                 $categoriaId,
@@ -650,7 +655,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             );
 
             exit;
-
         } catch (Throwable $erro) {
 
             // Reverte as alterações em caso de falha.
@@ -661,7 +665,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 } catch (Throwable $erroRollback) {
                     error_log(
                         "Erro ao reverter edição ArtDraw: "
-                        . $erroRollback->getMessage()
+                            . $erroRollback->getMessage()
                     );
                 }
             }
@@ -676,7 +680,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             error_log(
                 "Erro ao editar aula ArtDraw: "
-                . $erro->getMessage()
+                    . $erro->getMessage()
             );
 
             $erros[] = "Não foi possível atualizar a aula. Tente novamente.";
@@ -695,7 +699,7 @@ $quantidadeLinhasLinks = min(
 );
 
 // Configurações da página.
-$tituloPagina = "Editar aula";
+$tituloPagina = "Editar publicação";
 $paginaAtual = "professor";
 
 require_once __DIR__ . "/../includes/header.php";
@@ -740,20 +744,35 @@ require_once __DIR__ . "/../includes/header.php";
         action="/professor/editar-publicacao.php?id=<?= (int) $idPublicacao ?>"
         method="POST"
         enctype="multipart/form-data"
-        class="ad-publication-form"
-    >
+        class="ad-publication-form">
 
         <input
             type="hidden"
             name="csrf_token"
-            value="<?= $escapar($csrfToken) ?>"
-        >
+            value="<?= $escapar($csrfToken) ?>">
 
-        <div class="ad-publication-type">
+        <div class="ad-publication-field">
 
-            <span>Tipo de publicação</span>
+            <label for="tipo_conteudo">
+                Tipo de publicação
+            </label>
 
-            <strong>Aula</strong>
+            <select
+                id="tipo_conteudo"
+                name="tipo_conteudo"
+                required>
+
+                <?php foreach ($tiposConteudo as $valor => $nome): ?>
+
+                    <option
+                        value="<?= $escapar($valor) ?>"
+                        <?= $tipoConteudo === $valor ? "selected" : "" ?>>
+                        <?= $escapar($nome) ?>
+                    </option>
+
+                <?php endforeach; ?>
+
+            </select>
 
         </div>
 
@@ -761,7 +780,7 @@ require_once __DIR__ . "/../includes/header.php";
 
         <div class="ad-publication-field">
 
-            <label for="titulo">Título da aula</label>
+            <label for="titulo">Título da Publicação</label>
 
             <input
                 type="text"
@@ -769,8 +788,7 @@ require_once __DIR__ . "/../includes/header.php";
                 name="titulo"
                 maxlength="150"
                 value="<?= $escapar($titulo) ?>"
-                required
-            >
+                required>
 
             <small>Máximo de 150 caracteres.</small>
 
@@ -787,8 +805,7 @@ require_once __DIR__ . "/../includes/header.php";
                 name="descricao"
                 rows="3"
                 maxlength="1000"
-                required
-            ><?= $escapar($descricao) ?></textarea>
+                required><?= $escapar($descricao) ?></textarea>
 
             <small>Máximo de 1000 caracteres.</small>
 
@@ -805,8 +822,7 @@ require_once __DIR__ . "/../includes/header.php";
                 <select
                     id="categoria_id"
                     name="categoria_id"
-                    required
-                >
+                    required>
 
                     <option value="">Selecione uma categoria</option>
 
@@ -814,8 +830,7 @@ require_once __DIR__ . "/../includes/header.php";
 
                         <option
                             value="<?= (int) $categoria["id"] ?>"
-                            <?= $categoriaId === (int) $categoria["id"] ? "selected" : "" ?>
-                        >
+                            <?= $categoriaId === (int) $categoria["id"] ? "selected" : "" ?>>
                             <?= $escapar($categoria["nome"]) ?>
                             <?= !(bool) $categoria["ativo"] ? " (inativa — atual)" : "" ?>
                         </option>
@@ -833,8 +848,7 @@ require_once __DIR__ . "/../includes/header.php";
                 <select
                     id="nivel_id"
                     name="nivel_id"
-                    required
-                >
+                    required>
 
                     <option value="">Selecione um nível</option>
 
@@ -842,8 +856,7 @@ require_once __DIR__ . "/../includes/header.php";
 
                         <option
                             value="<?= (int) $nivel["id"] ?>"
-                            <?= $nivelId === (int) $nivel["id"] ? "selected" : "" ?>
-                        >
+                            <?= $nivelId === (int) $nivel["id"] ? "selected" : "" ?>>
                             <?= $escapar($nivel["nome"]) ?>
                             <?= !(bool) $nivel["ativo"] ? " (inativo — atual)" : "" ?>
                         </option>
@@ -860,17 +873,16 @@ require_once __DIR__ . "/../includes/header.php";
 
         <div class="ad-publication-field">
 
-            <label for="conteudo">Conteúdo da aula</label>
+            <label for="conteudo">Conteúdo da Publicação</label>
 
             <textarea
                 id="conteudo"
                 name="conteudo"
                 rows="10"
-                required
-            ><?= $escapar($textoCompleto) ?></textarea>
+                required><?= $escapar($textoCompleto) ?></textarea>
 
             <small>
-                Edite a explicação completa da sua aula.
+                Edite a explicação completa da sua publicação.
             </small>
 
         </div>
@@ -895,27 +907,23 @@ require_once __DIR__ . "/../includes/header.php";
 
                 <select
                     id="tipo_midia"
-                    name="tipo_midia"
-                >
+                    name="tipo_midia">
 
                     <option
                         value="nenhum"
-                        <?= $tipoMidia === "nenhum" ? "selected" : "" ?>
-                    >
+                        <?= $tipoMidia === "nenhum" ? "selected" : "" ?>>
                         Sem mídia
                     </option>
 
                     <option
                         value="imagem"
-                        <?= $tipoMidia === "imagem" ? "selected" : "" ?>
-                    >
+                        <?= $tipoMidia === "imagem" ? "selected" : "" ?>>
                         Imagem
                     </option>
 
                     <option
                         value="youtube"
-                        <?= $tipoMidia === "youtube" ? "selected" : "" ?>
-                    >
+                        <?= $tipoMidia === "youtube" ? "selected" : "" ?>>
                         Vídeo do YouTube
                     </option>
 
@@ -926,8 +934,7 @@ require_once __DIR__ . "/../includes/header.php";
             <div
                 class="ad-publication-media-field"
                 id="campo-imagem"
-                <?= $tipoMidia !== "imagem" ? "hidden" : "" ?>
-            >
+                <?= $tipoMidia !== "imagem" ? "hidden" : "" ?>>
 
                 <label for="midia_imagem">Substituir imagem</label>
 
@@ -940,8 +947,7 @@ require_once __DIR__ . "/../includes/header.php";
 
                         <img
                             src="<?= $escapar($publicacao["midia_url"]) ?>"
-                            alt="Imagem atualmente cadastrada"
-                        >
+                            alt="Imagem atualmente cadastrada">
 
                         <small>Imagem atual. Se não enviar outra, ela será mantida.</small>
 
@@ -953,8 +959,7 @@ require_once __DIR__ . "/../includes/header.php";
                     type="file"
                     id="midia_imagem"
                     name="midia_imagem"
-                    accept=".jfif,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                >
+                    accept=".jfif,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
 
                 <small>
                     JPG, JFIF, PNG ou WebP. Tamanho máximo de 5 MB.
@@ -965,8 +970,7 @@ require_once __DIR__ . "/../includes/header.php";
             <div
                 class="ad-publication-media-field"
                 id="campo-youtube"
-                <?= $tipoMidia !== "youtube" ? "hidden" : "" ?>
-            >
+                <?= $tipoMidia !== "youtube" ? "hidden" : "" ?>>
 
                 <label for="youtube_url">Endereço do vídeo</label>
 
@@ -976,8 +980,7 @@ require_once __DIR__ . "/../includes/header.php";
                     name="youtube_url"
                     value="<?= $escapar($urlYoutube) ?>"
                     placeholder="https://www.youtube.com/watch?v=..."
-                    maxlength="500"
-                >
+                    maxlength="500">
 
                 <small>
                     Informe o novo endereço ou mantenha o atual.
@@ -1020,8 +1023,7 @@ require_once __DIR__ . "/../includes/header.php";
                                 name="links_titulo[]"
                                 maxlength="150"
                                 value="<?= $escapar($linksTituloFormulario[$i] ?? "") ?>"
-                                placeholder="Ex.: Material de apoio"
-                            >
+                                placeholder="Ex.: Material de apoio">
 
                         </div>
 
@@ -1034,15 +1036,13 @@ require_once __DIR__ . "/../includes/header.php";
                                 name="links_url[]"
                                 maxlength="1000"
                                 value="<?= $escapar($linksUrlFormulario[$i] ?? "") ?>"
-                                placeholder="https://..."
-                            >
+                                placeholder="https://...">
 
                         </div>
 
                         <button
                             type="button"
-                            class="ad-publication-remove-link"
-                        >
+                            class="ad-publication-remove-link">
                             Remover
                         </button>
 
@@ -1055,8 +1055,7 @@ require_once __DIR__ . "/../includes/header.php";
             <button
                 type="button"
                 id="ad-adicionar-link"
-                class="ad-publication-add-link"
-            >
+                class="ad-publication-add-link">
                 + Adicionar outro link
             </button>
 
@@ -1068,15 +1067,13 @@ require_once __DIR__ . "/../includes/header.php";
 
             <button
                 type="submit"
-                class="ad-publication-submit"
-            >
+                class="ad-publication-submit">
                 Salvar alterações
             </button>
 
             <a
                 href="/professor/index.php"
-                class="ad-publication-cancel"
-            >
+                class="ad-publication-cancel">
                 Cancelar
             </a>
 
@@ -1096,8 +1093,7 @@ require_once __DIR__ . "/../includes/header.php";
                     type="text"
                     name="links_titulo[]"
                     maxlength="150"
-                    placeholder="Ex.: Material de apoio"
-                >
+                    placeholder="Ex.: Material de apoio">
 
             </div>
 
@@ -1109,15 +1105,13 @@ require_once __DIR__ . "/../includes/header.php";
                     type="url"
                     name="links_url[]"
                     maxlength="1000"
-                    placeholder="https://..."
-                >
+                    placeholder="https://...">
 
             </div>
 
             <button
                 type="button"
-                class="ad-publication-remove-link"
-            >
+                class="ad-publication-remove-link">
                 Remover
             </button>
 
@@ -1128,89 +1122,89 @@ require_once __DIR__ . "/../includes/header.php";
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
 
-    // Alterna os campos conforme o tipo de mídia.
-    const seletorMidia = document.getElementById("tipo_midia");
-    const campoImagem = document.getElementById("campo-imagem");
-    const campoYoutube = document.getElementById("campo-youtube");
+        // Alterna os campos conforme o tipo de mídia.
+        const seletorMidia = document.getElementById("tipo_midia");
+        const campoImagem = document.getElementById("campo-imagem");
+        const campoYoutube = document.getElementById("campo-youtube");
 
-    if (seletorMidia && campoImagem && campoYoutube) {
+        if (seletorMidia && campoImagem && campoYoutube) {
 
-        const inputImagem = document.getElementById("midia_imagem");
-        const inputYoutube = document.getElementById("youtube_url");
+            const inputImagem = document.getElementById("midia_imagem");
+            const inputYoutube = document.getElementById("youtube_url");
 
-        function atualizarCamposMidia() {
+            function atualizarCamposMidia() {
 
-            const tipo = seletorMidia.value;
+                const tipo = seletorMidia.value;
 
-            campoImagem.hidden = tipo !== "imagem";
-            campoYoutube.hidden = tipo !== "youtube";
+                campoImagem.hidden = tipo !== "imagem";
+                campoYoutube.hidden = tipo !== "youtube";
 
-            inputImagem.disabled = tipo !== "imagem";
-            inputYoutube.disabled = tipo !== "youtube";
+                inputImagem.disabled = tipo !== "imagem";
+                inputYoutube.disabled = tipo !== "youtube";
+            }
+
+            seletorMidia.addEventListener("change", atualizarCamposMidia);
+
+            atualizarCamposMidia();
         }
 
-        seletorMidia.addEventListener("change", atualizarCamposMidia);
+        // Adiciona e remove links complementares.
+        const listaLinks = document.getElementById("lista-links");
+        const botaoAdicionar = document.getElementById("ad-adicionar-link");
+        const modeloLink = document.getElementById("modelo-link");
 
-        atualizarCamposMidia();
-    }
+        if (listaLinks && botaoAdicionar && modeloLink) {
 
-    // Adiciona e remove links complementares.
-    const listaLinks = document.getElementById("lista-links");
-    const botaoAdicionar = document.getElementById("ad-adicionar-link");
-    const modeloLink = document.getElementById("modelo-link");
+            botaoAdicionar.addEventListener("click", function() {
 
-    if (listaLinks && botaoAdicionar && modeloLink) {
+                const total = listaLinks.querySelectorAll(
+                    ".ad-publication-link-row"
+                ).length;
 
-        botaoAdicionar.addEventListener("click", function () {
+                if (total >= 10) {
+                    alert("Você pode adicionar no máximo 10 links.");
+                    return;
+                }
 
-            const total = listaLinks.querySelectorAll(
-                ".ad-publication-link-row"
-            ).length;
+                listaLinks.appendChild(
+                    modeloLink.content.cloneNode(true)
+                );
+            });
 
-            if (total >= 10) {
-                alert("Você pode adicionar no máximo 10 links.");
-                return;
-            }
+            listaLinks.addEventListener("click", function(evento) {
 
-            listaLinks.appendChild(
-                modeloLink.content.cloneNode(true)
-            );
-        });
+                const botaoRemover = evento.target.closest(
+                    ".ad-publication-remove-link"
+                );
 
-        listaLinks.addEventListener("click", function (evento) {
+                if (!botaoRemover) {
+                    return;
+                }
 
-            const botaoRemover = evento.target.closest(
-                ".ad-publication-remove-link"
-            );
+                const linha = botaoRemover.closest(
+                    ".ad-publication-link-row"
+                );
 
-            if (!botaoRemover) {
-                return;
-            }
+                const linhas = listaLinks.querySelectorAll(
+                    ".ad-publication-link-row"
+                );
 
-            const linha = botaoRemover.closest(
-                ".ad-publication-link-row"
-            );
+                if (linhas.length > 1) {
 
-            const linhas = listaLinks.querySelectorAll(
-                ".ad-publication-link-row"
-            );
+                    linha.remove();
 
-            if (linhas.length > 1) {
+                } else {
 
-                linha.remove();
+                    linha.querySelectorAll("input").forEach(function(input) {
+                        input.value = "";
+                    });
+                }
+            });
+        }
 
-            } else {
-
-                linha.querySelectorAll("input").forEach(function (input) {
-                    input.value = "";
-                });
-            }
-        });
-    }
-
-});
+    });
 </script>
 
 <?php require_once __DIR__ . "/../includes/footer.php"; ?>

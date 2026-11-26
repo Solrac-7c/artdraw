@@ -97,7 +97,7 @@ require_once __DIR__ . "/../includes/header.php";
     <?php if ($mensagemProfessor !== ""): ?>
 
         <div class="ad-teacher-feedback <?= $tipoMensagemProfessor === "sucesso" ? "is-success" : "is-error" ?>">
-        <?= $escapar($mensagemProfessor) ?>
+            <?= $escapar($mensagemProfessor) ?>
         </div>
 
     <?php endif; ?>
@@ -121,8 +121,7 @@ require_once __DIR__ . "/../includes/header.php";
 
         <a
             href="/perfil/index.php"
-            class="ad-teacher-profile-link"
-        >
+            class="ad-teacher-profile-link">
             Ver meu perfil
         </a>
 
@@ -249,51 +248,42 @@ require_once __DIR__ . "/../includes/header.php";
 
                             <a
                                 href="/conteudo/index.php?id=<?= (int) $publicacao["id"] ?>"
-                                class="ad-teacher-view-link"
-                            >
+                                class="ad-teacher-view-link">
                                 Visualizar
                             </a>
 
-                            <?php if ($publicacao["tipo_conteudo"] === "aula"): ?>
-
-                                <a
-                                    href="/professor/editar-publicacao.php?id=<?= (int) $publicacao["id"] ?>"
-                                    class="ad-teacher-view-link"
-                                >
-                                    Editar
-                                </a>
+                            <a
+                                href="/professor/editar-publicacao.php?id=<?= (int) $publicacao["id"] ?>"
+                                class="ad-teacher-view-link">
+                                Editar
+                            </a>
 
                             <form
                                 action="/professor/excluir-publicacao.php"
                                 method="POST"
                                 class="ad-teacher-delete-form"
-                                onsubmit="return confirm('Tem certeza de que deseja excluir esta aula? Essa ação não poderá ser desfeita.');"
-                            >
+                                onsubmit="return confirm('Tem certeza de que deseja excluir esta publicação? Essa ação não poderá ser desfeita.');">
 
-                            <input
-                                type="hidden"
-                                name="csrf_token"
-                                value="<?= $escapar($csrfExcluirToken) ?>"
-                            >
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?= $escapar($csrfExcluirToken) ?>">
 
-                            <input
-                                type="hidden"
-                                name="id"
-                                value="<?= (int) $publicacao["id"] ?>"
-                            >
+                                <input
+                                    type="hidden"
+                                    name="id"
+                                    value="<?= (int) $publicacao["id"] ?>">
 
-                            <button
-                                type="submit"
-                                class="ad-teacher-delete-button"
-                            >
-                                Excluir
-                            </button>
+                                <button
+                                    type="submit"
+                                    class="ad-teacher-delete-button">
+                                    Excluir
+                                </button>
 
-                        </form>
+                            </form>
 
-    <?php endif; ?>
+                        </div>
 
-</div>
 
                     </article>
 
@@ -325,8 +315,7 @@ require_once __DIR__ . "/../includes/header.php";
     href="/professor/nova-publicacao.php?tipo=aula"
     class="ad-teacher-fab"
     aria-label="Cadastrar nova aula"
-    title="Cadastrar nova aula"
->
+    title="Cadastrar nova aula">
     <span aria-hidden="true">+</span>
 </a>
 
