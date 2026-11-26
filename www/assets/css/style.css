@@ -3111,3 +3111,68 @@ a {
     flex-wrap: wrap;
     gap: 10px;
 }
+
+/* =========================================
+   EXCLUSÃO DE PUBLICAÇÕES - PROFESSOR
+========================================= */
+
+.ad-teacher-publication-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ad-teacher-delete-form {
+    margin: 0;
+}
+
+.ad-teacher-delete-button {
+    display: inline-block;
+    padding: 10px 16px;
+    border: 1px solid #E4C7C1;
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: #985E53;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.ad-teacher-delete-button:hover {
+    background: #F8E9E6;
+}
+
+.ad-teacher-feedback {
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    border-radius: 9px;
+    font-size: 14px;
+}
+
+.ad-teacher-feedback.is-success {
+    background: #E7F0ED;
+    color: #345E51;
+}
+
+.ad-teacher-feedback.is-error {
+    background: #F8E9E6;
+    color: #8A4036;
+}
+
+@media (max-width: 550px) {
+
+    .ad-teacher-publication-actions {
+        width: 100%;
+    }
+
+    .ad-teacher-delete-form {
+        width: 100%;
+    }
+
+    .ad-teacher-delete-button {
+        width: 100%;
+    }
+
+}

@@ -13,6 +13,22 @@ if (($usuario["tipo_usuario"] ?? "") !== "professor") {
 
 $idProfessor = (int) $usuario["id"];
 
+// Token de segurança das exclusões.
+if (empty($_SESSION["csrf_excluir_publicacao"])) {
+    $_SESSION["csrf_excluir_publicacao"] = bin2hex(random_bytes(32));
+}
+
+$csrfExcluirToken = $_SESSION["csrf_excluir_publicacao"];
+
+// Recupera mensagens após uma operação no painel.
+$mensagemProfessor = $_SESSION["mensagem_professor"] ?? "";
+$tipoMensagemProfessor = $_SESSION["tipo_mensagem_professor"] ?? "";
+
+unset(
+    $_SESSION["mensagem_professor"],
+    $_SESSION["tipo_mensagem_professor"]
+);
+
 // Escapa valores antes de exibi-los no HTML.
 $escapar = static function ($valor) {
     return htmlspecialchars(
@@ -78,6 +94,13 @@ require_once __DIR__ . "/../includes/header.php";
 ?>
 
 <div class="ad-teacher-panel">
+    <?php if ($mensagemProfessor !== ""): ?>
+
+        <div class="ad-teacher-feedback <?= $tipoMensagemProfessor === "sucesso" ? "is-success" : "is-error" ?>">
+        <?= $escapar($mensagemProfessor) ?>
+        </div>
+
+    <?php endif; ?>
 
     <section class="ad-teacher-welcome">
 
@@ -224,21 +247,53 @@ require_once __DIR__ . "/../includes/header.php";
 
                         <div class="ad-teacher-publication-actions">
 
-                        <a
-                            href="/conteudo/index.php?id=<?= (int) $publicacao["id"] ?>"
-                            class="ad-teacher-view-link"
-                        >
-                            Visualizar
-                        </a>
+                            <a
+                                href="/conteudo/index.php?id=<?= (int) $publicacao["id"] ?>"
+                                class="ad-teacher-view-link"
+                            >
+                                Visualizar
+                            </a>
 
-                        <a
-                            href="/professor/editar-publicacao.php?id=<?= (int) $publicacao["id"] ?>"
-                            class="ad-teacher-view-link"
-                        >
-                            Editar
-                        </a>
+                            <?php if ($publicacao["tipo_conteudo"] === "aula"): ?>
 
-                        </div>
+                                <a
+                                    href="/professor/editar-publicacao.php?id=<?= (int) $publicacao["id"] ?>"
+                                    class="ad-teacher-view-link"
+                                >
+                                    Editar
+                                </a>
+
+                            <form
+                                action="/professor/excluir-publicacao.php"
+                                method="POST"
+                                class="ad-teacher-delete-form"
+                                onsubmit="return confirm('Tem certeza de que deseja excluir esta aula? Essa ação não poderá ser desfeita.');"
+                            >
+
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="<?= $escapar($csrfExcluirToken) ?>"
+                            >
+
+                            <input
+                                type="hidden"
+                                name="id"
+                                value="<?= (int) $publicacao["id"] ?>"
+                            >
+
+                            <button
+                                type="submit"
+                                class="ad-teacher-delete-button"
+                            >
+                                Excluir
+                            </button>
+
+                        </form>
+
+    <?php endif; ?>
+
+</div>
 
                     </article>
 
