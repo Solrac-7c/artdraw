@@ -295,7 +295,11 @@ require_once __DIR__ . "/../includes/header.php";
                 </p>
 
                 <span class="ad-admin-module-status">
-                    Próxima implementação
+                    <a
+                        href="/admin/categorias/index.php"
+                        class="ad-admin-action-link">
+                        Gerenciar categorias
+                    </a>
                 </span>
 
             </article>
@@ -313,7 +317,11 @@ require_once __DIR__ . "/../includes/header.php";
                 </p>
 
                 <span class="ad-admin-module-status">
-                    Próxima implementação
+                    <a
+                        href="/admin/niveis/index.php"
+                        class="ad-admin-action-link">
+                        Gerenciar níveis
+                    </a>
                 </span>
 
             </article>
