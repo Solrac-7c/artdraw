@@ -3648,3 +3648,143 @@ a {
         gap: 8px;
     }
 }
+
+/* =========================================
+   ADMINISTRAÇÃO - USUÁRIOS
+========================================= */
+
+.ad-admin-user-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.ad-admin-user-stat {
+    padding: 19px;
+    background: #FFFFFF;
+    border: 1px solid #E9E6DF;
+    border-radius: 12px;
+}
+
+.ad-admin-user-stat span {
+    display: block;
+    margin-bottom: 9px;
+    color: #777C80;
+    font-size: 0.82rem;
+}
+
+.ad-admin-user-stat strong {
+    color: #34383D;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.ad-admin-user-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.6fr) repeat(2, minmax(150px, 1fr)) auto;
+    align-items: end;
+    gap: 14px;
+}
+
+.ad-admin-user-filters .ad-admin-form-group {
+    margin-bottom: 0;
+}
+
+.ad-admin-user-filters input,
+.ad-admin-user-filters select {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+    color: #34383D;
+    background: #FFFFFF;
+    border: 1px solid #DAD7D0;
+    border-radius: 9px;
+    outline: none;
+}
+
+.ad-admin-user-filters input:focus,
+.ad-admin-user-filters select:focus {
+    border-color: #83AAA0;
+    box-shadow: 0 0 0 3px rgba(131, 170, 160, 0.18);
+}
+
+.ad-admin-user-filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ad-admin-user-filter-buttons .ad-admin-primary-button,
+.ad-admin-user-filter-buttons .ad-admin-secondary-button {
+    min-height: 43px;
+}
+
+.ad-admin-users-table {
+    min-width: 920px;
+}
+
+.ad-admin-user-details {
+    margin-top: 4px;
+    color: #777C80;
+    font-size: 0.81rem;
+    overflow-wrap: anywhere;
+}
+
+.ad-admin-danger-button {
+    color: #A45F52;
+}
+
+.ad-admin-danger-button:hover {
+    color: #803D34;
+}
+
+.ad-admin-user-no-action {
+    color: #92969A;
+    font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+
+    .ad-admin-user-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ad-admin-user-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ad-admin-user-filters .ad-admin-form-group:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .ad-admin-user-filter-buttons {
+        grid-column: 1 / -1;
+    }
+
+}
+
+@media (max-width: 550px) {
+
+    .ad-admin-user-stats {
+        gap: 10px;
+    }
+
+    .ad-admin-user-stat {
+        padding: 14px;
+    }
+
+    .ad-admin-user-stat strong {
+        font-size: 1.5rem;
+    }
+
+    .ad-admin-user-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .ad-admin-user-filters .ad-admin-form-group:first-child,
+    .ad-admin-user-filter-buttons {
+        grid-column: auto;
+    }
+
+}

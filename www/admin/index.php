@@ -339,7 +339,11 @@ require_once __DIR__ . "/../includes/header.php";
                 </p>
 
                 <span class="ad-admin-module-status">
-                    Próxima implementação
+                    <a
+                        href="/admin/usuarios/index.php"
+                        class="ad-admin-action-link">
+                        Gerenciar usuários
+                    </a>
                 </span>
 
             </article>
