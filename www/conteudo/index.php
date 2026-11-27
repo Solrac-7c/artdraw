@@ -10,6 +10,13 @@ require_once __DIR__ . "/../includes/auth.php";
 
 $usuario = usuarioAtual();
 
+// Pré-visualização exclusiva do administrador.
+$modoPreviaAdmin = (
+    isset($_GET["admin_preview"]) &&
+    $_GET["admin_preview"] === "1" &&
+    ($usuario["tipo_usuario"] ?? "") === "admin"
+);
+
 require_once __DIR__ . "/../includes/youtube.php";
 
 // Verifica quem pode realizar interações.
@@ -121,6 +128,14 @@ if ($usuario) {
 }
 
 
+// Administradores em modo de pré-visualização podem consultar
+// publicações de autores bloqueados. Os demais usuários continuam
+// sujeitos à restrição normal.
+$filtroAutorBloqueado = $modoPreviaAdmin
+    ? ""
+    : " AND u.status <> 'bloqueado' ";
+
+
 // Consulta principal.
 
 $sql = "
@@ -159,9 +174,7 @@ $sql = "
         ON c.nivel_id = n.id
 
     WHERE c.id = ?
-
-    AND u.status <> 'bloqueado'
-
+    $filtroAutorBloqueado
 ";
 
 
@@ -418,11 +431,15 @@ require_once __DIR__ . "/../includes/header.php";
             </p>
 
             <a
-                href="/index.php"
+                href="<?= $modoPreviaAdmin
+                    ? '/admin/publicacoes/index.php'
+                    : '/index.php' ?>"
                 class="ad-btn ad-btn-primary mt-3"
             >
 
-                Voltar para explorar
+                <?= $modoPreviaAdmin
+                    ? 'Voltar à moderação'
+                    : 'Voltar para explorar' ?>
 
             </a>
 
@@ -941,11 +958,15 @@ require_once __DIR__ . "/../includes/header.php";
 
 
                 <a
-                    href="/index.php"
+                    href="<?= $modoPreviaAdmin
+                        ? '/admin/publicacoes/index.php'
+                        : '/index.php' ?>"
                     class="ad-btn ad-btn-secondary ad-detail-back"
                 >
 
-                    Voltar para explorar
+                    <?= $modoPreviaAdmin
+                        ? 'Voltar à moderação'
+                        : 'Voltar para explorar' ?>
 
                 </a>
 

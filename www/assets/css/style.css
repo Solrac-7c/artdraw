@@ -3788,3 +3788,147 @@ a {
     }
 
 }
+
+/* =========================================
+   ADMINISTRAÇÃO - PUBLICAÇÕES
+========================================= */
+
+.ad-admin-publication-counter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ad-admin-publication-counter span {
+    display: block;
+    margin-bottom: 7px;
+    color: #777C80;
+    font-size: 0.85rem;
+}
+
+.ad-admin-publication-counter strong {
+    color: #34383D;
+    font-size: 1.8rem;
+}
+
+.ad-admin-publication-filters {
+    display: grid;
+    grid-template-columns: minmax(200px, 1.6fr) repeat(3, minmax(140px, 1fr)) auto;
+    align-items: end;
+    gap: 13px;
+}
+
+.ad-admin-publication-filters .ad-admin-form-group {
+    margin-bottom: 0;
+}
+
+.ad-admin-publication-filters input,
+.ad-admin-publication-filters select {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+    color: #34383D;
+    background: #FFFFFF;
+    border: 1px solid #DAD7D0;
+    border-radius: 9px;
+    outline: none;
+}
+
+.ad-admin-publication-filters input:focus,
+.ad-admin-publication-filters select:focus {
+    border-color: #83AAA0;
+    box-shadow: 0 0 0 3px rgba(131, 170, 160, 0.18);
+}
+
+.ad-admin-publications-table {
+    min-width: 1050px;
+}
+
+.ad-admin-content-description {
+    display: -webkit-box;
+    max-width: 300px;
+    margin-top: 5px;
+    overflow: hidden;
+    color: #777C80;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.ad-admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding-top: 20px;
+    border-top: 1px solid #EEECE7;
+}
+
+.ad-admin-pagination a {
+    color: #526F68;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.ad-admin-pagination a:hover {
+    color: #34383D;
+    text-decoration: underline;
+}
+
+.ad-admin-pagination span {
+    color: #777C80;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 1100px) {
+
+    .ad-admin-publication-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ad-admin-publication-filters .ad-admin-form-group:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .ad-admin-publication-filters .ad-admin-user-filter-buttons {
+        grid-column: 1 / -1;
+    }
+
+}
+
+@media (max-width: 550px) {
+
+    .ad-admin-publication-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .ad-admin-publication-filters .ad-admin-form-group:first-child,
+    .ad-admin-publication-filters .ad-admin-user-filter-buttons {
+        grid-column: auto;
+    }
+
+    .ad-admin-pagination {
+        gap: 12px;
+    }
+
+}
+
+/* Pré-visualização de publicações no painel administrativo */
+
+.ad-admin-preview-link {
+    padding: 0;
+    color: #526F68;
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.ad-admin-preview-link:hover {
+    color: #34383D;
+}

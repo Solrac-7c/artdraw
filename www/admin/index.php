@@ -361,7 +361,11 @@ require_once __DIR__ . "/../includes/header.php";
                 </p>
 
                 <span class="ad-admin-module-status">
-                    Próxima implementação
+                    <a
+                        href="/admin/publicacoes/index.php"
+                        class="ad-admin-action-link">
+                        Moderar publicações
+                    </a>
                 </span>
 
             </article>
